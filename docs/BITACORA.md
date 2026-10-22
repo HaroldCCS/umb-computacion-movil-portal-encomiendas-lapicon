@@ -69,3 +69,25 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 
 **Pendiente**
 - Compilar y ejecutar en Android (paso 4).
+
+---
+
+## 2026-10-22 13:21 — Paso 4: ejecución en el emulador
+
+**Qué se hizo**
+- Emulador `Medium_Phone` (Android 37, arm64, 1080×2400) y `flutter run -d emulator-5554`.
+- Primer `flutter build apk --debug` en ~5 min: Gradle descargó por su cuenta Build-Tools 36, Platform 35/36 y CMake 3.22.1
+  (las licencias ya estaban aceptadas).
+- Recorrido sin cuenta: pantalla de inicio de sesión, "Crear cuenta", volver e intentar entrar con campos vacíos
+  (aparecen "Escribe tu correo." y "Escribe tu contraseña."). Sin excepciones ni overflows en el log.
+- Nuevo `lapticon_app/tool/obtener_token.sh`: pide correo y contraseña por teclado y guarda el idToken en
+  `~/.lapticon/token.json` (fuera del repo, permisos 600) para probar la API con curl.
+
+**Errores encontrados**
+- Ninguno de compilación ni de ejecución en las pantallas públicas.
+- Aviso (no es error): `firebase_auth` y `firebase_core` aplican Kotlin Gradle Plugin; Flutter avisa que en versiones
+  futuras eso dejará de compilar. Se arregla cuando los plugins se actualicen, no en nuestro código.
+
+**Pendiente**
+- Las pantallas con sesión (completar perfil, elegir rol, perfil, remitente, viajero, chat) necesitan una cuenta
+  nueva → paso 5.
