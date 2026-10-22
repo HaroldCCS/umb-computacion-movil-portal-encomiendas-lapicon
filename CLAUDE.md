@@ -36,12 +36,14 @@ repositorios = contrato de la API) · `lib/features/<funcionalidad>` (pantallas,
 Las pantallas nunca llaman a `http`/Firebase directo. Rutas compartidas y sus argumentos en `lib/core/router/routes.dart`.
 La navegación de onboarding la decide `redirectFor()` según `SessionStatus`.
 
-## Supuestos del backend aún sin confirmar (verificar con una cuenta propia, no con `test30@gmail.com`)
-- Forma de las respuestas de `/api/users`, `/api/encomiendas`, `/api/viajes`.
-- Existencia de `PUT /api/encomiendas/tomar/:id` y `GET /api/vuelos/:numero/:fecha` (solo en el PDF, no en Postman).
-- Si aceptan `rol` (perfil), `fechaVencimiento` (encomienda) y `encomiendaId` (rating).
-- Estructura y reglas de Firestore para el chat (propuesta en `features/chat/chat_service.dart`).
-Cuando confirmes algo, actualiza `docs/03-contrato-api.md` y los modelos.
+## Contrato del backend (verificado el 22-oct-2026 con dos cuentas propias; detalle en docs/03)
+- Respuestas: `/api/users` → `{ message?, user }`; errores siempre `{ error }`. Respuestas guardadas en `referencias/respuestas/`.
+- El backend **no guarda `rol`** (vive en la app), **ignora `fechaVencimiento`** (vence al mes) y **`encomiendaId`** (rating).
+- Estados de encomienda: `disponible, tomada, vencida, entregada, recibida` (no hay `cancelada`; retirar = `vencida`).
+- `PUT /api/encomiendas/tomar/:id` existe; `GET /api/vuelos/...`, `GET /api/chats/estado/...` y `POST /api/chatbot`
+  responden 500 (problemas de configuración del servidor).
+- Falta confirmar: estructura y reglas de Firestore para el chat (propuesta en `features/chat/chat_service.dart`).
+- Cuentas de prueba propias: el remitente y el viajero de Harold. Tokens con `lapticon_app/tool/obtener_token.sh` (fuera del repo).
 
 ## Comandos
 ```bash
