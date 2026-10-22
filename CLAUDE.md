@@ -1,0 +1,60 @@
+# Lapticon — contexto para Claude Code
+
+Proyecto del 2.º corte de Computación Móvil (UMB, Ingeniería de Software). Estudiante: Harold Camargo.
+Idioma de trabajo: **español** (código con nombres en español, UI en español de "tú").
+
+## Qué es
+App Flutter (solo frontend) que une a un **remitente** (envía un paquete) con un **viajero** (ya viaja a ese destino).
+Backend ya existe y es compartido por todo el curso: `https://lapticon-backend.onrender.com` (Node/Express + MongoDB, Render
+gratuito → primera petición puede tardar ~60 s). Identidad con Firebase Auth (proyecto `lapticon-eba31`); toda ruta protegida
+exige `Authorization: Bearer <idToken>`. El chat va directo a Firestore.
+
+## Dónde está todo
+- `docs/01..07` — contexto del curso, requerimientos, **contrato de la API** (03), arquitectura (04), plan (05),
+  riesgos y preguntas al profesor (06), **sistema de diseño UX/UI** (07). Léelos antes de cambiar comportamiento o UI.
+- `referencias/` — colección y environment de Postman, `google-services.json`, PDF del enunciado ("session 10").
+- `lapticon_app/` — el código. Su `README.md` explica arquitectura, puesta en marcha y problemas comunes.
+
+## Estado (22-oct-2026)
+- Prácticas 1–6 **escritas** (auth, perfil, roles, remitente, viajero, chat Firestore, calificaciones, asistente IA).
+- Analizado limpio contra el código fuente de Flutter 3.47 / Dart 3.13, pero **nunca se ha compilado ni ejecutado en un
+  dispositivo** (se escribió sin SDK de Flutter disponible). Espera ajustes de Gradle/Android y del contrato real de la API.
+- `lib/firebase_options.dart` y `android/` NO están en el repo: los genera `lapticon_app/setup.sh`.
+
+## Decisiones tomadas
+- Flutter, Android primero. Riverpod 3 (no usar `StateProvider`/`StateNotifierProvider`, están en legacy), go_router,
+  `http`, `shared_preferences`, `google_fonts`, Firebase Auth + Cloud Firestore.
+- Auth: **solo correo y contraseña** (Google Sign-In pospuesto).
+- `applicationId = com.lapticon.app` (debe coincidir con `google-services.json`), `minSdk ≥ 23`.
+- Material desde `package:flutter/material.dart`. Ojo: google_fonts ≥ 9 usa tipos de `material_ui`; por eso el tema usa
+  solo `GoogleFonts.xxx(textStyle: ...)` y nunca los helpers `xxxTextTheme`.
+- Solo se sigue el material nuevo del profesor (Flutter). Ignorar material heredado de .NET MAUI/Xamarin/TFS en Canvas.
+
+## Arquitectura (resumen)
+`lib/core` (red, router, tema, widgets del sistema de diseño) · `lib/data` (modelos con `fromJson` tolerante,
+repositorios = contrato de la API) · `lib/features/<funcionalidad>` (pantallas, providers y rutas propias con prefijo).
+Las pantallas nunca llaman a `http`/Firebase directo. Rutas compartidas y sus argumentos en `lib/core/router/routes.dart`.
+La navegación de onboarding la decide `redirectFor()` según `SessionStatus`.
+
+## Supuestos del backend aún sin confirmar (verificar con una cuenta propia, no con `test30@gmail.com`)
+- Forma de las respuestas de `/api/users`, `/api/encomiendas`, `/api/viajes`.
+- Existencia de `PUT /api/encomiendas/tomar/:id` y `GET /api/vuelos/:numero/:fecha` (solo en el PDF, no en Postman).
+- Si aceptan `rol` (perfil), `fechaVencimiento` (encomienda) y `encomiendaId` (rating).
+- Estructura y reglas de Firestore para el chat (propuesta en `features/chat/chat_service.dart`).
+Cuando confirmes algo, actualiza `docs/03-contrato-api.md` y los modelos.
+
+## Comandos
+```bash
+cd lapticon_app
+bash setup.sh          # una vez: genera android/, ajusta Gradle, pub add, firebase_options, analyze, test
+flutter analyze
+flutter test
+flutter run            # con un emulador Android abierto o un teléfono conectado
+```
+
+## Reglas de trabajo
+- Mantener `flutter analyze` sin errores ni warnings y `flutter test` en verde.
+- Respetar el sistema de diseño de `docs/07` (tokens en `lib/core/theme/`, componentes en `lib/core/widgets/`),
+  accesibilidad (≥48 dp, contraste, nada solo por color) y textos en español.
+- Git: commits pequeños en español (`feat:`, `fix:`, `docs:`…), tags por práctica (`practica-1` … `practica-6`).
+  No subir `lib/firebase_options.dart`, `google-services.json` ni credenciales (ya están en `.gitignore`).

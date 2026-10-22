@@ -1,0 +1,15 @@
+# Credenciales y configuración sensible (no subir a un repo público)
+referencias/Lapticon.postman_environment.json
+**/google-services.json
+**/GoogleService-Info.plist
+*.keystore
+*.jks
+key.properties
+.env
+
+# Configuración de Firebase generada por setup.sh (contiene la API key)
+lapticon_app/lib/firebase_options.dart
+lapticon_app/android/app/google-services.json
+
+# Sistema
+.DS_Store

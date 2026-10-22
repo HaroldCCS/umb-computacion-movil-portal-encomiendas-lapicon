@@ -1,0 +1,308 @@
+{
+  "info": {
+    "name": "Lapticon Backend - Taller Flutter",
+    "description": "Colección para el taller práctico de conexión desde Flutter. Ejecuta primero '0. Auth > Obtener ID Token' (guarda el token y el uid automáticamente en el environment) y luego corre el resto de carpetas en orden.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Obtener ID Token (Firebase)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "pm.environment.set('id_token', data.idToken);",
+                  "pm.environment.set('uid', data.localId);",
+                  "pm.test('Token recibido', () => pm.expect(data.idToken).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"returnSecureToken\": true\n}"
+            },
+            "url": {
+              "raw": "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{firebase_api_key}}",
+              "protocol": "https",
+              "host": ["identitytoolkit", "googleapis", "com"],
+              "path": ["v1", "accounts:signInWithPassword"],
+              "query": [{ "key": "key", "value": "{{firebase_api_key}}" }]
+            },
+            "description": "Esto es lo que hace internamente firebase_auth en Flutter al hacer login. En la app real NUNCA se llama este endpoint directo; se usa el SDK. Aquí es solo para simular el login y obtener un token de prueba."
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Usuarios",
+      "item": [
+        {
+          "name": "Registrar/actualizar mi perfil",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Estudiante\",\n  \"apellido\": \"Demo\",\n  \"telefono\": \"3000000000\",\n  \"nacionalidad\": \"Colombia\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/users/register", "host": ["{{base_url}}"], "path": ["api", "users", "register"] }
+          }
+        },
+        {
+          "name": "Ver MI perfil (debe dar 200)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/users/{{uid}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{uid}}"] }
+          }
+        },
+        {
+          "name": "Ver perfil de OTRO usuario (debe dar 403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/users/{{other_uid}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{other_uid}}"] },
+            "description": "GET también quedó protegido por dueño: ver el perfil de otro responde 403, no solo editarlo."
+          }
+        },
+        {
+          "name": "Actualizar MI perfil (debe dar 200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Estudiante Editado\"\n}" },
+            "url": { "raw": "{{base_url}}/api/users/{{uid}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{uid}}"] }
+          }
+        },
+        {
+          "name": "Actualizar perfil de OTRO usuario (debe dar 403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"Hackeado\"\n}" },
+            "url": { "raw": "{{base_url}}/api/users/{{other_uid}}", "host": ["{{base_url}}"], "path": ["api", "users", "{{other_uid}}"] },
+            "description": "Demuestra el control de acceso: aunque el token es válido, no es dueño de este uid. Debe responder 403."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Viajes",
+      "item": [
+        {
+          "name": "Crear viaje",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroVuelo\": \"AA123\",\n  \"ciudadOrigen\": \"Bogota\",\n  \"ciudadDestino\": \"Miami\",\n  \"fechaViaje\": \"2026-12-01\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/viajes", "host": ["{{base_url}}"], "path": ["api", "viajes"] },
+            "description": "Si ya tienes un viaje con estado 'disponible', responde 400 (regla de negocio: un viaje activo a la vez)."
+          }
+        },
+        {
+          "name": "Listar mis viajes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/viajes", "host": ["{{base_url}}"], "path": ["api", "viajes"] }
+          }
+        },
+        {
+          "name": "Mi viaje disponible",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/viajes/disponible", "host": ["{{base_url}}"], "path": ["api", "viajes", "disponible"] }
+          }
+        },
+        {
+          "name": "Buscar viajeros por ciudad origen",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/viajes/buscar?ciudad=Bogota",
+              "host": ["{{base_url}}"],
+              "path": ["api", "viajes", "buscar"],
+              "query": [{ "key": "ciudad", "value": "Bogota" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Encomiendas",
+      "item": [
+        {
+          "name": "Crear encomienda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data._id) { pm.environment.set('encomienda_id', data._id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ciudadOrigen\": \"Bogota\",\n  \"ciudadDestino\": \"Miami\",\n  \"observaciones\": \"demo taller flutter\",\n  \"moneda\": \"USD\",\n  \"valor\": 10\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/encomiendas", "host": ["{{base_url}}"], "path": ["api", "encomiendas"] }
+          }
+        },
+        {
+          "name": "Listar mis encomiendas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/encomiendas", "host": ["{{base_url}}"], "path": ["api", "encomiendas"] }
+          }
+        },
+        {
+          "name": "Encomiendas disponibles (origen/destino)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/encomiendas/disponibles?origen=Bogota&destino=Miami",
+              "host": ["{{base_url}}"],
+              "path": ["api", "encomiendas", "disponibles"],
+              "query": [{ "key": "origen", "value": "Bogota" }, { "key": "destino", "value": "Miami" }]
+            }
+          }
+        },
+        {
+          "name": "Actualizar estado de MI encomienda (debe dar 200)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"estado\": \"cancelada\"\n}" },
+            "url": {
+              "raw": "{{base_url}}/api/encomiendas/{{encomienda_id}}/estado",
+              "host": ["{{base_url}}"],
+              "path": ["api", "encomiendas", "{{encomienda_id}}", "estado"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Ratings",
+      "item": [
+        {
+          "name": "Crear calificación",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuarioDestino\": \"{{other_uid}}\",\n  \"rolDestino\": \"viajero\",\n  \"calificacion\": 5,\n  \"comentario\": \"excelente\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/ratings", "host": ["{{base_url}}"], "path": ["api", "ratings"] }
+          }
+        },
+        {
+          "name": "Obtener calificaciones de un usuario (pública, sin token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/api/ratings/{{other_uid}}", "host": ["{{base_url}}"], "path": ["api", "ratings", "{{other_uid}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Chats",
+      "item": [
+        {
+          "name": "Estado de un chat",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{id_token}}" }],
+            "url": { "raw": "{{base_url}}/api/chats/estado/{{chat_id}}", "host": ["{{base_url}}"], "path": ["api", "chats", "estado", "{{chat_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Ciudades (públicas, sin token)",
+      "item": [
+        {
+          "name": "Listar países",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/api/ciudades/paises", "host": ["{{base_url}}"], "path": ["api", "ciudades", "paises"] }
+          }
+        },
+        {
+          "name": "Listar ciudades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/api/ciudades/ciudades", "host": ["{{base_url}}"], "path": ["api", "ciudades", "ciudades"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Chatbot",
+      "item": [
+        {
+          "name": "Enviar mensaje al chatbot",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{id_token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"mensajeUsuario\": \"Quiero registrar una encomienda de Bogota a Miami\"\n}" },
+            "url": { "raw": "{{base_url}}/api/chatbot", "host": ["{{base_url}}"], "path": ["api", "chatbot"] },
+            "description": "Requiere OPENROUTER_API_KEY configurada en el .env del backend. Sin token Authorization responde 401 (antes del fix era público)."
+          }
+        }
+      ]
+    }
+  ]
+}
