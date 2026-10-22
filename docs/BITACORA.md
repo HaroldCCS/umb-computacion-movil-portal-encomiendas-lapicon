@@ -91,3 +91,32 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 **Pendiente**
 - Las pantallas con sesión (completar perfil, elegir rol, perfil, remitente, viajero, chat) necesitan una cuenta
   nueva → paso 5.
+
+---
+
+## 2026-10-22 14:19 — Paso 5: contrato real de la API y pruebas en el emulador
+
+**Qué se hizo**
+- Cuentas propias: remitente y viajero (las creó Harold; tokens en `~/.lapticon/`, fuera del repo).
+- Todos los endpoints probados con curl; las respuestas están en `referencias/respuestas/` con teléfono y correo
+  enmascarados. `docs/03` y `CLAUDE.md` actualizados con lo confirmado.
+- En el emulador, como viajero: Mi viaje, Explorar, tomar encomienda, chat en Firestore (en los dos sentidos),
+  marcar entregada, calificar al remitente y Perfil. Todo quedó verificado contra el servidor.
+
+**Errores encontrados y cómo se resolvieron**
+- El backend no tiene el estado `cancelada` (daba 400) → se agregó `recibida` y cancelar ahora deja la encomienda `vencida`.
+- El backend ignora `fechaVencimiento` (vence al mes) → se quitó el selector y se muestra la fecha automática.
+- `/disponibles` trae `remitenteNombre` y no el uid → el modelo lo lee; el viajero ya no ve sus propias encomiendas.
+- `/api/chats/estado` responde 500 siempre → la app trata el chat como abierto.
+- Las calificaciones traen la fecha en `timestamp` → el modelo la lee.
+- Aserción de `ListTile` dentro de `DecoratedBox` (Mi viaje y Perfil) → se envolvió en un `Material` transparente.
+- La fecha del pase salía cortada, se perdía el nombre del remitente al entregar y se podía calificar dos veces → corregido.
+
+**Pendiente / para el profesor**
+- Fallas del servidor: `/api/vuelos` (falta RAPIDAPI_KEY), `/api/chatbot` (key de OpenRouter inválida) y
+  `/api/chats/estado` (500). Calificaciones inválidas dan 500 en vez de 400 y `POST /api/encomiendas` no valida el body.
+- Seguridad: las reglas de Firestore dejan que cualquier usuario autenticado liste todos los chats.
+- No hay endpoint para "encomiendas que tomé": la app las recuerda localmente, así que solo aparecen las tomadas en ese teléfono.
+- Falta probar en el emulador: el flujo del remitente (requiere iniciar sesión con esa cuenta), el asistente IA,
+  cambiar de rol y registrar un viaje nuevo.
+- Detalle visual: la etiqueta "TE PAGAN" se parte en dos líneas en las tarjetas de Explorar.
