@@ -80,9 +80,8 @@ Encomienda real:
 - **No existe `cancelada`.** Para retirar una encomienda, la app la pasa a `vencida`.
 - **`fechaVencimiento` se ignora:** siempre vence un mes después de creada. La app ya no pide fecha límite.
 - **No valida el body:** `POST {}` crea una encomienda vacía con 201 → la app valida todo antes de enviar.
-- **No valida roles:** el remitente puede tomar su propia encomienda y marcarla `entregada`. `paraTomar` excluye las
-  propias por `remitenteUid`, pero `/disponibles` no trae el uid, así que **hoy un usuario que cambia a viajero ve sus
-  propias encomiendas** (pendiente: cruzarlas con `GET /api/encomiendas`).
+- **No valida roles:** el remitente puede tomar su propia encomienda y marcarla `entregada`. `/disponibles` no trae el uid,
+  así que la app cruza la lista con `GET /api/encomiendas` (mis encomiendas) para no ofrecerle al viajero las propias.
 - Volver a `disponible` no limpia `viajeroId`.
 
 ### Calificaciones ✅
