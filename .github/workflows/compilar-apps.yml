@@ -111,7 +111,14 @@ jobs:
           fi
 
       - name: Compilar APK
-        run: flutter build apk --release --build-number=${{ github.run_number }}
+        # Maven Central a veces responde 403 a los runners de GitHub; se reintenta antes de rendirse.
+        run: |
+          for intento in 1 2 3; do
+            if flutter build apk --release --build-number=${{ github.run_number }}; then exit 0; fi
+            echo "::warning::Falló el intento $intento de compilar el APK; reintentando en 60 s."
+            sleep 60
+          done
+          exit 1
 
       - name: Renombrar
         run: |
