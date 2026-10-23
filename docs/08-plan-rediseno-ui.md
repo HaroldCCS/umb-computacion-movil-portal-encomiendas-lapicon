@@ -49,7 +49,7 @@ Valores iniciales; cada par texto/fondo se valida con `textContrastGuideline` en
 | `marcaSuave` | `#E4EDFA` | `#14284A` | Botón tonal |
 | `remitente` / `sobreRemitente` | `#F2A93B` / `#1B2A4A` | `#FFC56E` / `#11141B` | Acento del rol remitente |
 | `viajero` / `sobreViajero` | `#0B63C4` / `#FFFFFF` | `#8CC4FF` / `#00213F` | Acento del rol viajero |
-| `exito` / `exitoSuave` | `#1E7A4C` / `#DEF5E9` | `#5CD696` / `#0E3624` | Entregada, recibida, verificado |
+| `exito` / `exitoSuave` | `#17663F` / `#DEF5E9` | `#5CD696` / `#0E3624` | Entregada, recibida, verificado |
 | `atencion` / `atencionSuave` | `#8A4B00` / `#FEF2DC` | `#FABE46` / `#3E2A08` | Tomada (en camino), por calificar |
 | `peligro` / `peligroSuave` | `#C62828` / `#FDE6E6` | `#F87878` / `#461616` | Errores, retirar |
 | `info` / `infoSuave` | `#0D47A1` / `#E3ECFA` | `#8CC4FF` / `#14284A` | Disponible |
