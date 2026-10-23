@@ -140,17 +140,20 @@ El proyecto Firebase `lapticon-eba31` solo tiene registradas apps **Android**. H
 1. **Lo correcto:** pedir al profesor (dueño del proyecto) que registre una app iOS con bundle id
    `com.lapticon.app` y comparta el `GoogleService-Info.plist`. Se guarda como secreto
    `GOOGLE_SERVICE_INFO_PLIST` y el workflow lo usa solo.
-2. **Mientras tanto (experimental):** sin ese archivo, el workflow pone en iOS los mismos datos del cliente
-   Android. La app **compila**, pero no está comprobado que arranque: el SDK nativo de Firebase para iOS
-   valida que el `appId` sea de tipo `:ios:` y puede negarse a inicializar o cerrar la app al abrirla.
-   Si pasa eso, el camino 1 deja de ser opcional. (Auth y Firestore en sí solo usan la API key y el
-   `projectId`, así que con una app iOS registrada deberían funcionar igual que en Android.)
+2. **Sin ese archivo no funciona (comprobado el 23-oct-2026).** El workflow pone en iOS los mismos datos del
+   cliente Android y la app **compila**. Pero al abrirla en el simulador se cierra enseguida, con el error
+   `Configuration fails. It may be caused by an invalid GOOGLE_APP_ID`: el SDK nativo de Firebase para iOS
+   exige un `appId` de tipo `:ios:`. Hasta tener el plist, el IPA y el `.app` del simulador no sirven para probar.
+
+Crear un proyecto Firebase propio tampoco sirve: el backend del curso solo acepta tokens de `lapticon-eba31`.
+Con la app iOS registrada, Auth y Firestore deberían funcionar igual que en Android.
 
 Esto ya está en la lista de preguntas al profesor (ver `docs/06`).
 
 ## 5. Lista corta para el grupo
 
-1. Harold crea el secreto `GOOGLE_SERVICES_JSON` (y, de paso, `ANDROID_DEBUG_KEYSTORE_BASE64`).
+1. Harold crea el secreto `GOOGLE_SERVICES_JSON` (y, de paso, `ANDROID_DEBUG_KEYSTORE_BASE64`). ✅ Hecho.
+   Para iPhone falta el `GOOGLE_SERVICE_INFO_PLIST` que debe dar el profesor (§4).
 2. Push a `main` o *Run workflow* → en unos 15–25 min aparecen los artifacts.
 3. Android: descargar el APK en el teléfono y abrirlo (permitir "instalar apps desconocidas").
 4. iPhone: cada uno instala el IPA con **Sideloadly y su propio Apple ID** (§2-A) y lo renueva cada 7 días.
