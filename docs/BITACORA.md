@@ -120,3 +120,34 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 - Falta probar en el emulador: el flujo del remitente (requiere iniciar sesión con esa cuenta), el asistente IA,
   cambiar de rol y registrar un viaje nuevo.
 - Detalle visual: la etiqueta "TE PAGAN" se parte en dos líneas en las tarjetas de Explorar.
+
+---
+
+## 2026-10-23 01:39 — Paso 6: rediseño UI/UX v2
+
+**Qué se hizo**
+- Se replanteó el diseño con la guía de UI/UX de *Cuentas Claras*: plan y decisiones en `docs/08-plan-rediseno-ui.md`
+  (paleta Lapticon, fuente del sistema + Space Grotesk, pestaña Inicio para el remitente, estilo iOS completo).
+- Fases: 1 tokens y tema · 2 componentes base · 3 barra flotante, pantalla iOS, hero y pase · 4 inicio por rol con
+  contadores y avisos que llevan a la acción · 5a–5d todas las pantallas · 6 limpieza, accesibilidad y documentos.
+- Se borraron los widgets y alias del sistema v1; `docs/07` describe el sistema v2.
+- Pruebas: de 105 a 218, entre ellas `test/accesibilidad_test.dart` (claro/oscuro y letra al doble en 360 dp).
+- Cada fase se revisó en el emulador con datos reales (o con una galería temporal cuando la pantalla necesitaba otra
+  cuenta o no estaba alcanzable). Tag `pre-rediseno-v2` antes de empezar y `rediseno-v2` al terminar.
+
+**Errores encontrados y cómo se resolvieron**
+- Inicio en blanco en Android: el primer cuadro mide 0 y la grilla de mosaicos calculaba un ancho negativo → piso en 0.
+- El detalle quedaba sin contenido: la acción resaltada ocupaba todo el alto del pie → `MainAxisSize.min`.
+- La flecha de volver de la barra iOS salía como un cuadro → faltaba `cupertino_icons`.
+- Contraste: el verde de éxito y el degradado Cielo no llegaban a AA con texto pequeño → tonos más oscuros.
+- Grupos con contenido corto se encogían y centraban → se estiran a todo el ancho.
+- El botón seguía cargando debajo de la hoja de una regla del backend → deja de cargar antes de abrirla.
+- Con letra grande desbordaban el pase, la cabecera del hero, `Fila`, las estrellas y la marca → `Wrap`/`Flexible`.
+- El hero de Inicio tenía la acción y la etiqueta en nodos distintos del lector de pantalla → un solo nodo.
+
+**Pendiente**
+- Lo calificado antes del rediseño no quedó registrado en el teléfono: esa entrega aparece una vez "por calificar".
+- No se vieron en el emulador (sí en pruebas): el detalle del remitente con envíos reales y Registrar viaje con un
+  viajero sin viaje activo.
+- Dos documentos con número 08 (`08-plan-rediseno-ui.md` y `08-compilacion-y-pruebas-ios.md`, de otra sesión).
+- Otra sesión de Claude usó el mismo emulador en paralelo; conviene usar uno por sesión.

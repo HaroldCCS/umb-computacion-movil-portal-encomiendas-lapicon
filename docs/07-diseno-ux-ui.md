@@ -1,7 +1,10 @@
 # 7. Diseño UX/UI — investigación y sistema de diseño
 
 > Objetivo: que Lapticon se sienta **confiable, claro y con identidad de viaje**, no como una plantilla de Material.
-> Este documento guía todas las pantallas; el código implementa estos tokens en `lib/core/theme/`.
+> Este documento guía todas las pantallas. **Versión 2** (23-oct-2026): sistema rediseñado a partir de la guía de
+> UI/UX de *Cuentas Claras* (estilo iOS, tarjetas, barra flotante); la planeación y las decisiones están en
+> `docs/08-plan-rediseno-ui.md`. El código vive en `lib/core/theme/` (tokens y tema) y `lib/core/widgets/`
+> (componentes).
 
 ## 7.1 Investigación: qué aprendimos de referentes
 
@@ -47,175 +50,155 @@ una vez, ver solo encomiendas de su ruta con el valor que paga cada una, tomarla
 
 ## 7.3 Principios de diseño de Lapticon
 
-1. **La ruta es la protagonista.** Cada tarjeta muestra *ORIGEN → DESTINO* en grande, como un pase de abordar.
-2. **El estado siempre visible.** Chip de estado con color **+ ícono + texto** (nunca solo color) y línea de tiempo en el detalle.
-3. **Confianza a la vista.** Calificación ★, número de reseñas, "vuelo verificado" y perfil completo junto al nombre de cada persona.
-4. **Una acción principal por pantalla.** Un botón lleno (FilledButton); el resto, secundarias.
-5. **Pedir datos en el momento justo.** Registro solo con correo y contraseña → completar perfil → elegir rol.
-6. **Nunca dejar a la persona adivinando.** Skeletons al cargar, mensaje especial cuando el servidor está "despertando",
-   estados vacíos con una acción y errores en lenguaje humano con "Reintentar".
-7. **Identidad por rol.** Remitente usa acento **ámbar (paquete)**; viajero usa acento **cielo (avión)**: siempre se sabe en qué modo se está.
+1. **La ruta es la protagonista.** Cada encomienda es un pase de abordar: *ORIGEN → DESTINO* en grande.
+2. **El estado siempre visible**, con color **+ ícono + texto** (nunca solo color) y línea de tiempo en el detalle.
+3. **Confianza a la vista.** Calificación ★, número de reseñas y "Vuelo verificado" **o "Sin verificar"**: si algo
+   no se pudo comprobar, la interfaz lo dice siempre (hoy `/api/vuelos` responde 500).
+4. **La acción importante nunca queda escondida.** Una acción principal por pantalla; en los detalles va **fija
+   abajo**. Los avisos ("Tu encomienda ya fue entregada · Califica al viajero") llevan **directo** a la acción
+   (`?accion=calificar|entregar`) y la explican encima del botón. Las pestañas cuentan lo pendiente.
+5. **Ningún error en silencio.** Toda acción muestra *cargando* con texto ("Publicando…"), el **error junto a
+   lo que lo causó** (no un mensaje genérico) y el **éxito en un aviso flotante** arriba.
+6. **Fricción proporcional al riesgo.** Reversible → un toque (cambiar de rol). Con consecuencias → hoja inferior
+   que explica (tomar una encomienda, cerrar sesión). Irreversible → **escribir una palabra** (RETIRAR, ENTREGAR).
+7. **No mostrar lo que no aplica.** Sin envíos no hay tarjeta en cero; con viaje activo no aparece "Registrar
+   viaje"; las monedas no se mezclan (no se ordena por valor entre USD y COP).
+8. **Pedir datos en el momento justo.** Registro solo con correo y contraseña → completar perfil → elegir rol.
+9. **Nunca dejar a la persona adivinando.** Esqueletos al cargar, aviso de "servidor despertando", estados
+   vacíos con una acción y errores en lenguaje humano con "Reintentar".
+10. **Identidad por rol.** Remitente: acento **ámbar** y tarjeta **Medianoche**. Viajero: acento y tarjeta **Cielo**.
+11. **Se siente nativa.** Título grande que se compacta, barra de vidrio, rebote, jalar para actualizar, escala al
+    tocar (sin onda de Material), entrada escalonada; todo respeta "reducir movimiento".
 
 ## 7.4 Arquitectura de información
 
 ```text
 Inicio de sesión ─► Completar perfil (1.ª vez) ─► Elegir rol
                                                    │
-         ┌─────────────── REMITENTE ───────────────┴──────────────── VIAJERO ───────────────┐
-         │ [Envíos]  [Viajeros]  [Chats]  [Perfil]  │  [Mi viaje]  [Explorar]  [Chats]  [Perfil] │
-         │  FAB "Nueva encomienda"                   │   FAB "Registrar viaje" (si no hay viaje)   │
-         └───────────────────────────────────────────┴─────────────────────────────────────────────┘
-Perfil: datos · calificaciones · cambiar de rol · cerrar sesión
+       ┌──────────── REMITENTE ────────────────────┴──────────── VIAJERO ─────────────────────┐
+       │ ( Inicio · Envíos · Chats · Perfil )  (+)  │ ( Mi viaje · Explorar · Chats · Perfil )  (+)  │
+       │  "+" = Nueva encomienda                    │  "+" = Registrar viaje (solo sin viaje activo)  │
+       └────────────────────────────────────────────┴──────────────────────────────────────────────┘
+Perfil: calificaciones · datos de contacto · cambiar de rol · cerrar sesión
 ```
 
-- **Envíos** (remitente): pestañas *Activas* (disponible + tomada) · *Entregadas* · *Historial* (vencidas + canceladas). Toca → detalle.
-- **Viajeros** (remitente): buscar viajeros por ciudad de origen, con su calificación.
-- **Mi viaje** (viajero): tarjeta-pase del viaje activo + encomiendas que tomé.
-- **Explorar** (viajero): encomiendas disponibles para la ruta de mi viaje.
-- Máximo 4 destinos en la barra inferior (NavigationBar de Material 3).
+- **Barra flotante** en píldora de vidrio con el botón circular de la acción principal aparte.
+- **Contadores:** Envíos = entregas por calificar; Mi viaje = encomiendas por entregar.
+- **Inicio (remitente):** encabezado (saludo, fecha, avatar → Perfil), tarjeta principal Medianoche con los envíos
+  activos, avisos por calificar y *Vista rápida* (por calificar, entregadas, buscar viajeros, asistente).
+- **Envíos:** chips *Activas · Entregadas · Historial*; toca → detalle.
+- **Mi viaje:** tarjeta Cielo (ruta, vuelo, verificado o no, por entregar, te pagan), avisos, mis entregas, historial.
+- **Explorar:** encomiendas de la ruta del viaje, ordenables por *Más recientes* o *Vencen pronto*.
+- Lo que se calificó se recuerda en el teléfono (`Prefs.calificadas`): el backend ignora `encomiendaId`.
 
-## 7.5 Sistema de diseño (tokens)
+## 7.5 Sistema de diseño v2
 
-### Color
+### Color (`Colores`, una `ThemeExtension`; se lee con `context.c.xxx`)
+
+Ningún widget usa colores directos (salvo blanco sobre los degradados y el velo de las hojas).
 
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `primary` (Medianoche) | `#1B2A4A` | `#AFC6FF` | Barra superior, botones principales, ruta |
-| `secondary` / acento remitente (Ámbar) | `#F2A93B` (siempre con texto Medianoche encima, 7.1:1) | `#FFC56E` | Rol remitente, FAB, destacados |
-| `tertiary` / acento viajero (Cielo) | `#0B63C4` (texto/relleno) · `#2D8CFF` (solo decorativo) | `#8CC4FF` | Rol viajero, avión, enlaces |
-| `surface` | `#F7F5F0` (papel) | `#11141B` | Fondo |
-| `surfaceContainer` | `#FFFFFF` | `#1A1F2A` | Tarjetas |
-| `error` | `#C62828` | `#FFB4AB` | Errores |
+| `fondo` | `#F5F6F8` | `#000000` | Fondo de pantalla |
+| `superficie` / `superficie2` | `#FFFFFF` / `#EFF1F5` | `#171A20` / `#252A33` | Tarjetas, hojas / campos y chips |
+| `separador` | `#E2E6EC` | `#323844` | Bordes y divisores (en oscuro reemplazan la sombra) |
+| `texto` / `texto2` / `texto3` | `#111A2C` / `#5C6678` / `#8E97A6` | `#F3F5F8` / `#A6AEBB` / `#717A88` | Principal / secundario (AA) / no esencial |
+| `marca` (Cielo) | `#0B63C4` | `#8CC4FF` | Enlaces, íconos activos |
+| `marcaSolido` / `sobreMarca` | `#1B2A4A` / blanco | `#AFC6FF` / `#0E1A33` | Botón primario y su texto |
+| `remitente` / `viajero` | `#F2A93B` / `#0B63C4` | `#FFC56E` / `#8CC4FF` | Acento por rol (con su `sobre…`) |
+| `exito` / `atencion` / `peligro` / `info` (+ `…Suave`) | `#17663F` / `#8A4B00` / `#C62828` / `#0D47A1` | `#5CD696` / `#FABE46` / `#F87878` / `#8CC4FF` | Estados y avisos |
 
-Se genera el `ColorScheme` con `ColorScheme.fromSeed(seedColor: #1B2A4A)` y se sobrescriben `secondary`/`tertiary`/`surface`.
+- **Degradados de la tarjeta principal:** Medianoche `#3A5A8C → #1B2A4A → #0F1A30` (remitente) y Cielo
+  `#1A5FB0 → #0B4F9E → #083A75` (viajero), con brillo radial blanco al 10 %. Texto blanco con AA.
+- **Estados → insignia:** disponible = info + reloj · tomada ("En camino") = atención + maleta · entregada /
+  recibida = éxito + check · vencida y viaje completado = neutra.
+- **En oscuro no hay sombras**: la separación la dan las superficies y el borde.
+- Todos los pares texto/fondo se validan en `test/theme/tema_test.dart`.
 
-**Estados de la encomienda / viaje** (color + ícono + texto):
+### Tipografía
 
-| Estado | Color | Ícono (Material Symbols) | Texto |
-|---|---|---|---|
-| disponible | Azul `#0D47A1` | `schedule` | Disponible |
-| tomada | Ámbar oscuro `#8A4B00` | `luggage` | En camino |
-| entregada | Verde `#1B5E20` | `check_circle` | Entregada |
-| vencida | Gris `#5F5F5F` | `event_busy` | Vencida |
-| cancelada | Rojo `#B71C1C` | `cancel` | Cancelada |
-| viaje completado | Gris azulado `#455A64` | `flight_land` | Completado |
+Fuente del sistema para todo; **Space Grotesk** solo en los estilos `display*` (ciudades del pase y cifras grandes).
+Montos con **cifras tabulares** (`Monto`).
 
-Los chips usan el color al 12 % de opacidad como fondo y el color pleno en texto/ícono (contraste calculado: entre 4.9:1 y 7.1:1 sobre blanco y sobre el fondo papel). Nunca se pone texto blanco sobre ámbar (2:1) ni sobre `#2D8CFF` (3.3:1).
+| Estilo | Tamaño / peso | Uso |
+|---|---|---|
+| `displayLarge` | 40 / 700 | Cifra de la tarjeta principal |
+| `displaySmall` | 32 / 700 | Ciudades del pase (24 en el compacto) |
+| Título grande (barra iOS) | 32 / 700 | Título de pantalla |
+| `titleLarge` | 20 / 700 | Secciones ("Vista rápida") |
+| `bodyLarge` / `bodyMedium` | 17 / 15 | Texto y campos / secundario |
+| etiqueta | 13 / 500, `texto2` | Encima de cada campo |
+| micro | 11 / 600, MAYÚSCULAS | ORIGEN, DESTINO, TE PAGAN |
 
-### Tipografía (Google Fonts)
+### Medidas y movimiento (`Medidas`, `Movimiento`)
 
-| Estilo | Fuente | Tamaño / peso | Uso |
-|---|---|---|---|
-| `displaySmall` | **Space Grotesk** | 32 / 700 | Ciudades en la tarjeta-pase |
-| `headlineSmall` | Space Grotesk | 24 / 600 | Títulos de pantalla |
-| `titleMedium` | **Manrope** | 16 / 700 | Títulos de tarjeta |
-| `bodyLarge` | Manrope | 16 / 400 | Texto principal (mínimo 16 para lectura) |
-| `bodyMedium` | Manrope | 14 / 400 | Texto secundario |
-| `labelLarge` | Manrope | 14 / 700 | Botones |
-| `labelSmall` | Space Grotesk | 11 / 600, tracking 1.2, MAYÚSCULAS | Etiquetas tipo pase ("ORIGEN", "VUELO") |
+- Margen 16 · bloque 20 · radios: campo y botón 16, tarjeta 24, tarjeta principal y hojas 28, chips en píldora.
+- Botón 52 (≥ 48 con letra grande) · botón de ícono 48 · fila 52 · barra de pestañas 62.
+- Entrada 380 ms `Cubic(0.22, 1, 0.36, 1)` · hoja 420 ms `Cubic(0.32, 0.72, 0, 1)` · tocar 150 ms a 0.97 ·
+  escalonado de 40 ms por ítem. Con "reducir movimiento" todo va a cero.
 
-### Espaciado, forma y elevación
+### Componentes (`lib/core/widgets/`)
 
-- Retícula de **4 dp**: 4 · 8 · 12 · 16 · 24 · 32 · 48. Margen lateral de pantalla 16 (20 en tabletas).
-- Radios: campos y chips 12 · tarjetas 20 · hojas inferiores 28 · botones con forma de píldora.
-- Elevación casi nula: tarjetas planas con borde `outlineVariant` de 1 dp; sombra suave solo en la tarjeta-pase.
-- Botones principales de **alto 56 dp** y ancho completo en formularios.
-
-### Componentes propios
-
-| Componente | Descripción |
+| Componente | Para qué |
 |---|---|
-| **RouteTicketCard** (tarjeta-pase) | Firma visual de la app. Arriba "ORIGEN" / "DESTINO" en `labelSmall`, ciudades en `displaySmall`, ícono de avión entre ambas con línea punteada; muesca semicircular a los lados (como un boleto perforado); abajo, fecha · vuelo/valor · chip de estado. |
-| **StatusChip** | Color + ícono + texto según la tabla de estados. |
-| **TrustRow** | Avatar con iniciales · nombre · ★ 4,8 (12 reseñas) · insignia "Vuelo verificado". |
-| **StatusTimeline** | Línea de tiempo vertical: Publicada → Tomada → Entregada → Calificada, con el paso actual resaltado. |
-| **AppTextField** | Etiqueta arriba, ayuda debajo, error al salir del campo, check verde al ser válido. |
-| **EmptyState** | Ilustración simple (ícono grande en círculo de color) + título + texto + botón. |
-| **ErrorState / ColdStartBanner** | "El servidor está despertando, puede tardar hasta un minuto…" con indicador de progreso y "Reintentar". |
-| **RoleCard** | Tarjeta grande seleccionable para elegir rol (ícono, título, 2 líneas de beneficio). |
+| `Pantalla` | Barra iOS con título grande, jalar para actualizar, pie fijo y relleno bajo la barra flotante |
+| `BarraPestanas` | Píldora flotante + botón "+"; contadores con rebote |
+| `EncabezadoApp`, `TarjetaHero`, `SubTarjetaVidrio`, `EtiquetaVidrio`, `Mosaico` | Inicio y Mi viaje |
+| `RouteTicket` | La tarjeta-pase (firma visual) |
+| `Tarjeta`, `Grupo`, `Fila`, `FilaAccion`, `TarjetaAccion` | Tarjetas y listas agrupadas estilo ajustes; avisos que llevan a la acción |
+| `Boton` (primario · tonal · secundario · peligro), `BotonIcono`, `Enlace` | Acciones con estado de carga |
+| `Campo`, `CampoContrasena`, `CampoMonto`, `Chips`, `ChipsMultiples` | Formularios (validan al salir; check verde) |
+| `Insignia`, `Avatar`, `IconoEnCaja`, `Progreso`, `Monto` | Estados, personas, cifras |
+| `Aviso`, `Vacio`, `ErrorCarga`, `Esqueleto`, `AvisoServidor` | Información, vacío, error y carga |
+| `mostrarToast`, `mostrarHoja`, `confirmarConHoja`, `ConfirmacionEscrita` | Éxitos, hojas y confirmaciones |
+| `AccionResaltada`, `Presionable`, `Entrada` | Acción a la que lleva un aviso; respuesta al tocar; aparición |
 
-### Movimiento
+## 7.6 Pantallas
 
-- Transiciones de página estándar de Material 3 (fade-through) y `Hero` de la tarjeta-pase al detalle.
-- Duraciones 200–300 ms; respetar "reducir movimiento" (`MediaQuery.disableAnimations`).
-
-## 7.6 Especificación de pantallas
-
-### Práctica 1
-
-**Bienvenida / Inicio de sesión**
-```text
-┌──────────────────────────────┐
-│  ✈ LAPTICON                  │  logotipo (Space Grotesk)
-│  Tu paquete viaja con alguien│  propuesta de valor en 1 línea
-│  que ya va para allá.        │
-│  ┌ BOG ─ ─ ✈ ─ ─ MIA ┐       │  mini tarjeta-pase decorativa
-│  Correo  [______________]    │
-│  Contraseña [__________ 👁]  │
-│            ¿Olvidaste tu contraseña?
-│  [      Iniciar sesión      ]│  FilledButton 56 dp
-│  ¿No tienes cuenta? Crear cuenta │
-└──────────────────────────────┘
-```
-- Teclado de correo, `autofillHints`, acción "siguiente/enviar" en el teclado, mostrar/ocultar contraseña.
-- Errores de Firebase traducidos ("Correo o contraseña incorrectos", "Demasiados intentos, espera un momento").
-
-**Crear cuenta**: correo, contraseña (≥ 6, indicador de fortaleza), confirmar contraseña (se valida en cada pulsación).
-Texto: *"Solo te pedimos lo necesario. Tus datos de contacto los completas después."*
-
-**Recuperar contraseña**: un campo + botón; confirmación: *"Si el correo está registrado, te enviamos un enlace."* (no revela si existe).
-
-**Completar perfil** (1.ª vez, paso 1 de 2 con indicador de progreso): nombre, apellido, teléfono (teclado numérico), nacionalidad
-(buscador sobre `/api/ciudades/paises`). Texto: *"Así te reconocerán remitentes y viajeros."*
-
-**Elegir rol** (paso 2 de 2): dos `RoleCard`:
-- 📦 **Quiero enviar** — "Publica tu encomienda y encuentra quién la lleve."
-- ✈️ **Voy a viajar** — "Registra tu vuelo y gana llevando encomiendas de tu ruta."
-Nota: *"Puedes cambiar de rol cuando quieras desde tu perfil."*
-
-**Perfil**: cabecera con iniciales, nombre, chip de rol; tarjeta de calificaciones (promedio ★, total); datos editables;
-acciones: editar perfil, cambiar rol, cerrar sesión (con confirmación).
-
-### Prácticas 2–6 (resumen)
-
-| Pantalla | Claves de UX |
+| Pantalla | Claves |
 |---|---|
-| Envíos (remitente) | Pestañas por estado; lista de `RouteTicketCard`; *pull-to-refresh*; vacío: "Aún no has enviado nada · Publicar encomienda". |
-| Nueva encomienda | Una sola pantalla en secciones: **Ruta** (origen/destino con buscador; botón ⇅ para intercambiar) · **Pago** (valor + moneda en el mismo renglón) · **Detalles** (observaciones con contador). Resumen en tarjeta-pase antes de publicar. |
-| Detalle de encomienda | `Hero` de la tarjeta; `StatusTimeline`; `TrustRow` del viajero; acción principal según estado: *Cancelar* (disponible) · *Abrir chat* (tomada) · *Calificar* (entregada). |
-| Registrar viaje | Número de vuelo en mayúsculas automáticas (`AA123`), fecha con selector, ruta; al validar, estado "Verificando vuelo…" y resultado con insignia **Vuelo verificado**. |
-| Explorar (viajero) | Cabecera con la ruta de mi viaje; lista de encomiendas con **valor destacado**; tomar = hoja inferior de confirmación con recordatorio: *"Revisa el contenido antes de aceptarlo. Eres responsable de lo que llevas en tu equipaje."* |
-| Chat | Burbujas (propias en `primary`, ajenas en `surfaceContainer`), hora, encabezado con la ruta de la encomienda; si está cerrado: barra inferior deshabilitada con *"Este chat se cerró porque la entrega terminó."* |
-| Calificar | 5 estrellas grandes (48 dp), etiquetas por puntaje ("Excelente"), comentario opcional, botón deshabilitado hasta elegir estrellas. |
+| Login | Marca, propuesta de valor, pase decorativo; error de Firebase junto al botón ("Entrando…") |
+| Registro / Recuperar | Barra de fuerza y mínimo en verde; Recuperar no revela si el correo existe |
+| Completar perfil / Elegir rol | Paso 1 y 2 de 2; tarjetas de rol con marca de selección; país en hoja con buscador |
+| Inicio (remitente) | Tarjeta Medianoche, avisos por calificar, Vista rápida |
+| Envíos | Chips con contador; pases; vacío con "Publicar encomienda" |
+| Nueva encomienda | Ruta (⇅) · pago con `CampoMonto` y moneda en chips · detalles; vista previa del pase |
+| Detalle (remitente) | Pase, línea de tiempo, detalles, quién la lleva; pie: retirar (RETIRAR), chat o calificar |
+| Buscar viajeros | Ciudad arriba; cada viajero con su calificación y el pase de su vuelo |
+| Mi viaje / Explorar | Tarjeta Cielo y avisos / ruta del viaje, orden y valor a la vista |
+| Registrar viaje | Fecha con rueda iOS; verificación dice si quedará "sin verificar" |
+| Encomienda (viajero) | Tomar = hoja con la responsabilidad completa; entregar = escribir ENTREGAR |
+| Chats / chat | Lista agrupada; burbujas propias en Medianoche; chat cerrado con candado y explicación |
+| Calificar / Reseñas | Estrellas de 48 dp, sugerencias en chips, comentario; resumen con barras por estrella |
+| Perfil | Estilo ajustes; cambiar de rol en un toque, cerrar sesión en hoja |
+| Asistente | Sugerencias por rol; el error se ve en la burbuja con "Reintentar" |
 
 ## 7.7 Estados y microcopy
 
 | Situación | Qué ve la persona |
 |---|---|
-| Cargando lista | Skeleton de 3 tarjetas (no spinner a pantalla completa) |
-| Servidor en frío (>5 s) | Banner: "Despertando el servidor… la primera carga puede tardar hasta un minuto." |
-| Sin conexión | Banner superior persistente: "Sin conexión. Revisa tu internet." |
-| 400 de negocio | Mensaje del backend en un diálogo o snackbar, p. ej. "Ya tienes un viaje activo." + acción "Ver mi viaje" |
-| 401 | Silencioso (se refresca el token); si falla: "Tu sesión expiró, vuelve a iniciar sesión." |
-| 403 | "No tienes permiso para hacer esto." |
-| Éxito | Snackbar breve: "Encomienda publicada", "Perfil actualizado" |
-| Acción destructiva | Diálogo de confirmación con verbo explícito: "¿Cancelar la encomienda? · No · Sí, cancelar" |
+| Cargando | Esqueletos con la forma del contenido (no spinner a pantalla completa) |
+| Servidor en frío | "Despertando el servidor… la primera carga puede tardar hasta un minuto." encima de la barra |
+| Error al cargar | `ErrorCarga`: "No pudimos cargar la información" + motivo + "Reintentar" |
+| Error de una acción | `Aviso` rojo **junto al botón** que la lanzó (o en el pie del detalle) |
+| Regla del backend | Hoja que explica y ofrece el camino ("Ya tienes un viaje activo" → "Ver mi viaje") |
+| Éxito | Aviso flotante arriba: "Encomienda publicada", "Perfil actualizado" |
+| Acción irreversible | Hoja con el verbo explícito y la palabra a escribir |
 
 Tono: cercano y directo, de *tú*, frases cortas, sin tecnicismos (no "error 500", sí "Algo falló en el servidor").
 
-## 7.8 Checklist de calidad UI por pantalla
+## 7.8 Lista de verificación (automatizada)
 
-- [ ] Funciona en tema claro y oscuro.
-- [ ] Probada con letra del sistema al máximo y en pantalla de 360 dp de ancho.
-- [ ] Áreas táctiles ≥ 48 dp y todos los íconos-botón con `tooltip`/`semanticLabel`.
-- [ ] Estados de carga, vacío y error implementados.
-- [ ] Teclado correcto por campo y la acción del teclado avanza al siguiente.
-- [ ] Ningún estado comunicado solo con color.
+`test/accesibilidad_test.dart` recorre las pantallas principales (login, registro, elegir rol, inicio, envíos,
+nueva encomienda, mi viaje, explorar y perfil) y comprueba en cada una:
 
-## 7.9 Siguiente paso de diseño
+- [x] Contraste de texto (WCAG AA) en tema **claro y oscuro**.
+- [x] Áreas táctiles ≥ 48 dp y botones con etiqueta para el lector de pantalla.
+- [x] **Letra del sistema al doble** en un teléfono de **360 dp** sin desbordes.
 
-Antes de las prácticas 3–6 conviene validar con 2–3 compañeros el flujo "publicar encomienda" y "tomar encomienda"
-(prueba de pasillo de 5 minutos: ¿entienden qué hacer y en qué estado está su envío?) y ajustar.
+Además: ningún `Color(0x…)` fuera de `tema.dart` (en las pantallas solo quedan `Colors.transparent`, blanco sobre
+los degradados y el negro del velo de las hojas), toda cifra de dinero con cifras tabulares, y las animaciones
+respetan "reducir movimiento" (`componentes_test.dart`).
 
 ## Fuentes
 
@@ -226,3 +209,4 @@ Antes de las prácticas 3–6 conviene validar con 2–3 compañeros el flujo "p
 - [Baymard Institute — Mobile forms: avoid inline labels](https://baymard.com/blog/mobile-forms-avoid-inline-labels)
 - [Flutter docs — Accessibility: UI design & styling](https://docs.flutter.dev/ui/accessibility/ui-design-and-styling)
 - [Flutter docs — Migrate to Material 3](https://docs.flutter.dev/release/breaking-changes/material-3-migration)
+- Guía de UI/UX de *Cuentas Claras* (proyecto propio de Harold, base del rediseño v2; ver `docs/08-plan-rediseno-ui.md`)

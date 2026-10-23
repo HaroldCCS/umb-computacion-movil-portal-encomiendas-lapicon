@@ -1,8 +1,8 @@
 # 8. Plan de rediseño UI/UX — Lapticon v2
 
 > Fuente: `GUIA-UI-UX-FLUTTER.md` (lecciones de *Cuentas Claras*, estilo inspirado en *Lukas*).
-> Este documento es **solo el plan**: nada se ha implementado todavía. Cuando se apruebe, `docs/07` se
-> reescribe con el sistema final y este archivo queda como registro de la decisión.
+> **Estado (23-oct-2026): implementado** en las fases 1–6 (commits `be59daf` … y tag `rediseno-v2`). El sistema
+> final está descrito en `docs/07`; este archivo queda como registro del plan y de las decisiones.
 
 ## 8.1 Qué se toma de la guía y qué se adapta
 
