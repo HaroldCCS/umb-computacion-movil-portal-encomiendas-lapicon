@@ -144,6 +144,8 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 - El botón seguía cargando debajo de la hoja de una regla del backend → deja de cargar antes de abrirla.
 - Con letra grande desbordaban el pase, la cabecera del hero, `Fila`, las estrellas y la marca → `Wrap`/`Flexible`.
 - El hero de Inicio tenía la acción y la etiqueta en nodos distintos del lector de pantalla → un solo nodo.
+- Esos arreglos de letra grande descentraron los detalles del pase y despegaron el valor de `Fila` de la derecha
+  (se vio en el emulador) → corregido y con pruebas de alineación.
 
 **Pendiente**
 - Lo calificado antes del rediseño no quedó registrado en el teléfono: esa entrega aparece una vez "por calificar".
