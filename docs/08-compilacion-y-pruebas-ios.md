@@ -12,13 +12,16 @@ Se ejecuta con cada push a `main` que toque `lapticon_app/**`, con cada tag `pra
 | Análisis y pruebas | Ubuntu | `flutter analyze` + `flutter test`. No frena la compilación de las apps. |
 | APK Android | Ubuntu | `lapticon-<n>.apk` (release, instalable directo). |
 | IPA iOS (sin firmar) | macOS | `lapticon-<n>-sin-firmar.ipa` y `lapticon-<n>-simulador.zip`. |
-| Publicar Release | Ubuntu | Solo con tags `practica-*`: sube los tres archivos a una Release del repo. |
+| Publicar Release | Ubuntu | Con cada push a `main` reemplaza la Release "última versión"; con un tag `practica-*` crea una Release fija. Los archivos de iOS se publican solo si existe el secreto `GOOGLE_SERVICE_INFO_PLIST`. |
+
+**Enlace fijo al APK más reciente** (es el que aparece en el README):
+`https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases/latest/download/lapticon.apk`
 
 `<n>` es el número de ejecución; también se usa como `versionCode`/`CFBundleVersion`, así que cada
 compilación instala **encima** de la anterior.
 
-Los archivos quedan 30 días en la pestaña **Actions → (la ejecución) → Artifacts**. En un repo público,
-para descargarlos hay que haber iniciado sesión en GitHub. Las Releases las puede descargar cualquiera.
+Lo más fácil es descargar desde **Releases**, sin iniciar sesión. Además, cada ejecución deja sus archivos
+30 días en **Actions → (la ejecución) → Artifacts**, pero ahí sí hay que haber iniciado sesión en GitHub.
 
 ### Secretos que hay que crear (Settings → Secrets and variables → Actions)
 

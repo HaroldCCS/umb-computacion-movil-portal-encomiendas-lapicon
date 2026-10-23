@@ -9,7 +9,8 @@
 #                                  firmados con la misma llave y se pueden instalar encima del anterior.
 #
 # Las carpetas android/ e ios/ que falten las genera el propio runner; nada de lo generado se sube al repo.
-# Al empujar un tag `practica-*` los archivos se publican además en una Release de GitHub.
+# Cada push a main actualiza la Release "última versión" (enlace fijo .../releases/latest/download/lapticon.apk)
+# y cada tag `practica-*` deja además una Release propia.
 
 name: Compilar apps
 
@@ -127,6 +128,9 @@ jobs:
     name: IPA iOS (sin firmar)
     runs-on: macos-latest
     timeout-minutes: 60
+    outputs:
+      # Solo con el plist de Firebase para iOS la app abre; sin él no se publica en la Release.
+      firebase_ios: ${{ steps.firebase.outputs.firebase_ios }}
     steps:
       - uses: actions/checkout@v6
 
@@ -156,6 +160,7 @@ jobs:
           fi
 
       - name: Configurar Firebase (Android + iOS)
+        id: firebase
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
@@ -167,6 +172,7 @@ jobs:
           printf '%s' "$GOOGLE_SERVICES_JSON" > "$RUNNER_TEMP/google-services.json"
           if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
             printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > ios/Runner/GoogleService-Info.plist
+            echo "firebase_ios=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::Sin GOOGLE_SERVICE_INFO_PLIST la app de iOS compila pero se cierra al abrir (Firebase rechaza el appId de Android). Ver docs/08 §4."
           fi
@@ -246,9 +252,13 @@ jobs:
             salida/*.zip
           retention-days: 30
 
+  # Cada push a main reemplaza la Release `ultima` (marcada como "Latest"); cada tag practica-* deja una fija.
+  # Los archivos tienen nombre estable, así que este enlace siempre baja el APK más reciente:
+  #   https://github.com/<dueño>/<repo>/releases/latest/download/lapticon.apk
   publicar:
     name: Publicar Release
-    if: startsWith(github.ref, 'refs/tags/practica-')
+    # Basta con que el APK salga bien: si iOS falla, igual se publica Android.
+    if: ${{ !cancelled() && needs.android.result == 'success' }}
     needs: [android, ios]
     runs-on: ubuntu-latest
     permissions:
@@ -256,17 +266,52 @@ jobs:
     defaults:
       run:
         working-directory: .
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/download-artifact@v7
         with:
+          name: lapticon-android
           path: salida
-          merge-multiple: true
 
-      - uses: softprops/action-gh-release@v2
+      - uses: actions/download-artifact@v7
+        if: ${{ needs.ios.outputs.firebase_ios == 'true' }}
         with:
-          name: Lapticon ${{ github.ref_name }}
-          files: salida/*
-          body: |
-            - `*.apk`: Android, instalar directo en el teléfono.
-            - `*-sin-firmar.ipa`: iOS, instalar con Sideloadly / AltStore usando tu Apple ID.
-            - `*-simulador.zip`: iOS Simulator en un Mac (descomprimir y arrastrar al simulador).
+          name: lapticon-ios
+          path: salida
+
+      - name: Nombres estables
+        run: |
+          cd salida
+          mv lapticon-*.apk lapticon.apk
+          for f in lapticon-*-sin-firmar.ipa; do if [ -e "$f" ]; then mv "$f" lapticon-ios-sin-firmar.ipa; fi; done
+          for f in lapticon-*-simulador.zip; do if [ -e "$f" ]; then mv "$f" lapticon-ios-simulador.zip; fi; done
+          ls -la
+
+      - name: Crear la Release
+        run: |
+          URL="https://github.com/$GH_REPO/releases/latest/download/lapticon.apk"
+          {
+            echo "## Descargar"
+            echo
+            echo "**Android:** [lapticon.apk]($URL). Ábrelo en el teléfono y permite \"instalar apps desconocidas\"."
+            echo
+            if [ -e salida/lapticon-ios-sin-firmar.ipa ]; then
+              echo "**iPhone:** \`lapticon-ios-sin-firmar.ipa\`, instalar con Sideloadly y tu Apple ID (ver docs/08)."
+              echo "**Simulador iOS (Mac):** \`lapticon-ios-simulador.zip\`, descomprimir y arrastrar al simulador."
+            else
+              echo "**iPhone:** todavía no disponible (falta la configuración de Firebase para iOS, ver docs/08)."
+            fi
+            echo
+            echo "Compilación #${{ github.run_number }} · commit ${GITHUB_SHA::7}"
+          } > notas.md
+
+          if [[ "$GITHUB_REF" == refs/tags/practica-* ]]; then
+            gh release create "$GITHUB_REF_NAME" salida/* --verify-tag --latest \
+              --title "Lapticon $GITHUB_REF_NAME" --notes-file notas.md
+          else
+            gh release delete ultima --cleanup-tag --yes || true
+            gh release create ultima salida/* --target "$GITHUB_SHA" --latest \
+              --title "Lapticon · última versión (#${{ github.run_number }})" --notes-file notas.md
+          fi

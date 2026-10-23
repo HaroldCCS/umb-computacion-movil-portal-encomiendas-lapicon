@@ -1,5 +1,13 @@
 # Lapticon · App móvil en Flutter — Planeación (2.º corte, Computación Móvil)
 
+## 📲 Descargar la app
+
+**[⬇️ Descargar Lapticon para Android (lapticon.apk)](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases/latest/download/lapticon.apk)**
+
+Siempre es la última versión: se compila sola con cada cambio en `main`. Ábrela en el teléfono y permite
+"instalar apps desconocidas". Las versiones anteriores están en [Releases](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases).
+iPhone: ver [docs/08](docs/08-compilacion-y-pruebas-ios.md).
+
 > Estado: **planeación** (sin código todavía). Elaborada el 22-oct-2026 a partir del material de Canvas
 > (`canvas/04-datos/computacion-movil`): páginas de sesiones, cronograma, PDA, presentación *"session 10.pdf"*
 > (Lapticon – cómo funciona la app) y los archivos Postman/Firebase que adjuntó el profesor.
