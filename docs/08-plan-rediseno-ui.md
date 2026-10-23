@@ -124,6 +124,9 @@ VIAJERO     ( Mi viaje · Explorar · Chats · Perfil ) ( + ) Registrar viaje   
 - Si el viajero ya tiene viaje, el "+" **no se muestra** y la píldora ocupa todo el ancho (principio 1.4).
 - **Contadores en la barra:** Envíos = entregadas sin calificar · Mi viaje = tomadas sin entregar.
   Chats no lleva contador (no hay "no leídos" en Firestore todavía).
+- **Qué falta por calificar** se guarda en el teléfono (`Prefs.calificadas`): el backend ignora
+  `encomiendaId` al calificar, así que no hay otra forma de saberlo. Lo calificado antes de la fase 4 no
+  quedó registrado y puede aparecer una vez como pendiente.
 - **Avisos que llevan directo a la acción** (principio 1.1), con `?accion=` en la ruta del detalle para
   desplazar hasta el botón:
   - Remitente: "Tu encomienda a Miami ya fue entregada · Califica al viajero" → calificar.
@@ -178,7 +181,7 @@ VIAJERO     ( Mi viaje · Explorar · Chats · Perfil ) ( + ) Registrar viaje   
 | **1** | Tokens y tema: `tema.dart`, `vocabulario.dart`, `monto.dart`; `app.dart` usa `construirTema`; `AppTheme`/`AppColors` quedan como alias temporales para no romper pantallas | `feat: tokens y tema v2` | `analyze` y `test` en verde, la app abre con colores nuevos |
 | **2** | Componentes base: presionable, tarjeta, grupo, botón, campo, insignia, ícono en caja, avatar, progreso, chips, aviso/vacío, esqueleto, entrada, toast, hoja, confirmación escrita + **pruebas de widget** de cada uno (claro/oscuro, contraste, 48 dp, reducir movimiento) | 2–3 commits `feat:` | Pruebas nuevas pasan |
 | **3** | Estructura: barra de pestañas, pantalla, encabezado, tarjeta hero, mosaico; re-estilo de `RouteTicket`, `TrustRow`, `StatusTimeline` | `feat: barra flotante y hero` | |
-| **4** | `HomeShell` nuevo + Inicio del remitente + Mi viaje con hero; contadores y avisos con deep link | `feat: inicio por rol` | Navegación completa en emulador |
+| **4** | `HomeShell` nuevo + Inicio del remitente + Mi viaje con hero; contadores y avisos con deep link. Se adelantó *Envíos* con chips (de 5b), porque Inicio abre un chip concreto, y `showAppSnackBar` pasó a usar toasts (la barra flotante tapaba el SnackBar) | `feat: inicio por rol` | Navegación completa en emulador |
 | **5a** | Auth y onboarding (splash, login, registro, recuperar, completar perfil, elegir rol) | `feat(ui): auth y onboarding v2` | |
 | **5b** | Remitente (envíos, nueva, detalle, buscar viajeros) | `feat(ui): remitente v2` | |
 | **5c** | Viajero (explorar, registrar viaje, encomienda) | `feat(ui): viajero v2` | |
