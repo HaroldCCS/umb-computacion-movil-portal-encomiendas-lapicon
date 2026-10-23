@@ -54,8 +54,8 @@ Valores iniciales; cada par texto/fondo se valida con `textContrastGuideline` en
 | `peligro` / `peligroSuave` | `#C62828` / `#FDE6E6` | `#F87878` / `#461616` | Errores, retirar |
 | `info` / `infoSuave` | `#0D47A1` / `#E3ECFA` | `#8CC4FF` / `#14284A` | Disponible |
 
-- **Degradado remitente (Medianoche):** `#3A5A8C → #1B2A4A → #0F1A30` a 155° + brillo radial blanco 20 %.
-- **Degradado viajero (Cielo):** `#2F7BD0 → #0B63C4 → #0A3F80` + el mismo brillo.
+- **Degradado remitente (Medianoche):** `#3A5A8C → #1B2A4A → #0F1A30` a 155° + brillo radial blanco 10 %.
+- **Degradado viajero (Cielo):** `#1A5FB0 → #0B4F9E → #083A75` (oscurecido en la fase 3 para AA con texto blanco pequeño) + el mismo brillo.
 - Íconos en recuadro pastel (fondo al 14 %): azul `#3B82F6`, violeta `#8B5CF6`, ámbar `#E8930C`,
   rojo `#E5484D`, verde `#1E8458`, celeste `#0EA5E9`.
 - En oscuro **sin sombras** (`conSombra: false`).
