@@ -15,6 +15,7 @@
 | P9 | ¿Nos comparte la documentación "Lapticon en Apiary" (`claude.ai/artifact/3j2Hm5PgBJQGq25ye2Nuqz`) y, si existe, el repositorio de la app Flutter de referencia (`crear_encomienda_screen.dart`, etc.)? | Contrato exacto de respuestas. |
 | P10 | ¿Los retos 2 (matching IA) y 3 (vencimientos programados) se esperan de nosotros? Son cambios de backend y no tenemos su repositorio. | Alcance. |
 | P11 | ¿Se requiere iOS o basta Android? | Configuración de Firebase iOS. |
+| P12 | ¿Puede agregar **`https://lapticon-pwa.pages.dev`** a la lista de orígenes permitidos (CORS) del backend? Hoy solo acepta `http://localhost:5500` y `http://127.0.0.1:5500` (comprobado el 24-oct-2026). | Versión PWA de la app (`docs/10`): desde ese dominio el navegador bloquea todas las llamadas a la API. Mientras tanto se usa un proxy propio como plan B. |
 
 ## 6.2 Riesgos técnicos
 
