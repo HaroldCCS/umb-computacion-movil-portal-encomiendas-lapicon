@@ -8,6 +8,10 @@ Siempre es la última versión: se compila sola con cada cambio en `main`. Ábre
 "instalar apps desconocidas". Las versiones anteriores están en [Releases](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases).
 iPhone: ver [docs/08](docs/08-compilacion-y-pruebas-ios.md).
 
+**Versión web instalable (PWA):** [`aplicacion_pwa/`](aplicacion_pwa/README.md) — la misma app, con el mismo backend,
+Firebase y diseño, para abrir desde el navegador del celular e instalar en la pantalla de inicio (plan en
+[docs/10](docs/10-plan-migracion-pwa.md); despliegue en Cloudflare Pages pendiente).
+
 > Estado: **planeación** (sin código todavía). Elaborada el 22-oct-2026 a partir del material de Canvas
 > (`canvas/04-datos/computacion-movil`): páginas de sesiones, cronograma, PDA, presentación *"session 10.pdf"*
 > (Lapticon – cómo funciona la app) y los archivos Postman/Firebase que adjuntó el profesor.

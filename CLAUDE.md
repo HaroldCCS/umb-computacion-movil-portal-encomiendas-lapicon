@@ -21,6 +21,13 @@ exige `Authorization: Bearer <idToken>`. El chat va directo a Firestore.
   dispositivo** (se escribió sin SDK de Flutter disponible). Espera ajustes de Gradle/Android y del contrato real de la API.
 - `lib/firebase_options.dart` y `android/` NO están en el repo: los genera `lapticon_app/setup.sh`.
 
+## PWA (`aplicacion_pwa/`, 24-oct-2026)
+Migración completa de la app a PWA (React 19 + TS + Vite + TanStack Query + React Router + Tailwind con los tokens v2).
+Plan y estado en `docs/10`; uso en `aplicacion_pwa/README.md`. Comandos: `npm run typecheck && npm run lint && npm test
+&& npm run e2e`; `npm run humo` prueba el servidor real en solo lectura. La clave de Firebase va en
+`aplicacion_pwa/.env.local` (no se sube). Mismos nombres de componentes, mismas claves locales y mismo esquema de chat
+que Flutter: si cambia uno, revisar el otro. Despliegue en Cloudflare Pages pendiente (lo hace Harold).
+
 ## Decisiones tomadas
 - Flutter, Android primero. Riverpod 3 (no usar `StateProvider`/`StateNotifierProvider`, están en legacy), go_router,
   `http`, `shared_preferences`, `google_fonts`, Firebase Auth + Cloud Firestore.

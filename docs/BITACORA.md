@@ -153,3 +153,27 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
   viajero sin viaje activo.
 - Dos documentos con número 08 (`08-plan-rediseno-ui.md` y `08-compilacion-y-pruebas-ios.md`, de otra sesión).
 - Otra sesión de Claude usó el mismo emulador en paralelo; conviene usar uno por sesión.
+
+---
+
+## 2026-10-24 — Paso 7: Lapticon como PWA (`aplicacion_pwa/`)
+
+**Qué se hizo**
+- Plan en `docs/10-plan-migracion-pwa.md` (stack de *Cuentas Claras*: React 19 + TypeScript + Vite + TanStack Query +
+  React Router + Tailwind mapeado a los tokens v2; Cloudflare Pages; proxy como plan B por el CORS del backend).
+- Fase 0: andamiaje, proxy y CI (`.github/workflows/pwa.yml`). Fases 1–8: núcleo, componentes, todas las pantallas,
+  chat en Firestore con el mismo esquema que Flutter, service worker, íconos e instalación.
+- Pruebas: 122 unitarias (portadas de Dart, contrato con `referencias/respuestas/`, componentes con axe, contraste de
+  tokens), 26 E2E en iPhone y Android con dos personas a la vez, y `npm run humo` contra el servidor real (13/13).
+
+**Errores encontrados y cómo se resolvieron**
+- La tarjeta principal del viajero salía sin degradado: Tailwind no ve clases armadas con plantillas
+  (`hero-${rol}`) → mapa de clases literales y una prueba que lo vigila.
+- Fechas de viaje un día antes en Colombia (medianoche UTC leída como instante) → se leen como fecha del calendario.
+- Los campos de ciudad/país solo anunciaban la etiqueta → ahora "Origen: Bogota".
+- E2E intermitentes por escribir antes de que la pantalla montara → esperar la pantalla antes de llenar.
+- `npm audit` marcaba `@grpc/grpc-js` (solo Node) → `overrides` a 1.14.6.
+
+**Pendiente**
+- Conectar Cloudflare Pages (con `VITE_FIREBASE_API_KEY`), probar instalada en iPhone y Android y el chat con Flutter.
+- Respuesta del profesor a P12 (CORS) para pasar del proxy al modo directo.

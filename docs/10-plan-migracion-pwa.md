@@ -1,6 +1,7 @@
 # 10. Plan de migración — Lapticon como PWA
 
-> **Estado: plan, sin código todavía.** La app Flutter (`lapticon_app/`) **no se toca**: la PWA vive aparte en
+> **Estado (24-oct-2026): implementada** (fases 0–8 y las pruebas de la 9; ver §10.15). Falta el despliegue en
+> Cloudflare Pages y la prueba en un celular real con las cuentas de verdad. La app Flutter (`lapticon_app/`) **no se toca**: la PWA vive aparte en
 > `aplicacion_pwa/` y comparte el mismo backend, el mismo proyecto de Firebase y los mismos datos.
 > Base de diseño: el sistema v2 (`docs/07`), las lecciones del rediseño (`docs/09`, §8 "Llevarlo a una PWA") y la
 > guía de *Cuentas Claras*. Contrato de la API: `docs/03`.
@@ -306,3 +307,30 @@ viewport móvil si aún no hay despliegue) y commit pequeño en español. Se cre
    (mapeado a los tokens v2), Vitest y Playwright.
 4. **Gestor de paquetes:** npm, como Cuentas Claras.
 5. **Carpeta:** `aplicacion_pwa` (sin tilde ni espacios: evita problemas en terminal, CI y URLs).
+
+## 10.15 Estado de la implementación (24-oct-2026)
+
+| Fase | Estado | Notas |
+|---|---|---|
+| 0. Andamiaje | ✅ | CI `pwa.yml` en verde; proxy de Vite y Pages Function verificados contra Render |
+| 1. Núcleo | ✅ | Tokens v2, cliente API, modelos, repositorios de los 19 endpoints, sesión, Firebase, `localStorage` con las claves de Flutter |
+| 2–3. Componentes y estructura | ✅ | Mismos nombres que en Flutter; pantalla iOS, barra flotante, hero, pase con muescas, hojas con foco atrapado |
+| 4. Auth y onboarding | ✅ | Login, registro, recuperar, completar perfil (país en hoja) y elegir rol |
+| 5. Remitente | ✅ | Inicio con avisos `?accion=calificar`, envíos con chip en la URL, nueva encomienda, detalle, buscar viajeros |
+| 6. Viajero | ✅ | Mi viaje, explorar, registrar viaje (verificación "no disponible" → *sin verificar*), tomar, entregar |
+| 7. Chat, calificaciones, perfil, asistente | ✅ | Firestore con el esquema de §10.7.6 (carga perezosa); asistente con error y reintento |
+| 8. PWA | ✅ | Manifest, íconos (192/512/maskable/apple), service worker sin caché de API, aviso de versión, invitación a instalar, aviso sin conexión |
+| 9. Calidad | 🟡 | 122 pruebas unitarias, 26 E2E (iPhone y Android), humo real 13/13. Falta: celular real, chat PWA ↔ Flutter en vivo, Lighthouse, tag `pwa-v1` |
+
+**Decisiones durante la implementación**
+- Mientras la sesión carga, el splash se muestra **sin cambiar la URL** (Flutter redirige a `/splash`): así un
+  enlace profundo sobrevive a la recarga. `redirigirPara` sigue siendo la misma regla y tiene sus pruebas.
+- Fechas de viaje: el backend las guarda como medianoche UTC; se leen como día del calendario (si no, en UTC-5 se
+  verían un día antes). Hay una prueba con la respuesta real.
+- Campos que abren una hoja (ciudad, país, fecha) se anuncian como "Etiqueta: valor elegido".
+- La prueba de "letra al 200 %" sigue el criterio de reflujo de WCAG (320 px efectivos): 200 % sobre un teléfono de
+  360 px dejaría 180 px, donde no cabe ninguna app.
+- `@grpc/grpc-js` (dependencia de Firestore solo en Node, no llega al navegador) se fuerza a 1.14.6 con `overrides`:
+  `npm audit --omit=dev` da 0.
+- E2E con identidad y chat falsos (`vite --mode e2e`) y un backend en memoria que responde como el real
+  (`pruebas/e2e/api-falsa.ts`); nunca se usan contraseñas reales.
