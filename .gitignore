@@ -7,9 +7,9 @@ referencias/Lapticon.postman_environment.json
 key.properties
 .env
 
-# Configuración de Firebase generada por setup.sh (contiene la API key)
-lapticon_app/lib/firebase_options.dart
-lapticon_app/android/app/google-services.json
+# Las apps viven en sus propios repositorios y se clonan aquí adentro (ver README).
+/lapticon_app/
+/aplicacion_pwa/
 
 # Sistema
 .DS_Store

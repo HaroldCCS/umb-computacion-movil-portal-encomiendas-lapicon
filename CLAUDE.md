@@ -13,7 +13,10 @@ exige `Authorization: Bearer <idToken>`. El chat va directo a Firestore.
 - `docs/01..07` — contexto del curso, requerimientos, **contrato de la API** (03), arquitectura (04), plan (05),
   riesgos y preguntas al profesor (06), **sistema de diseño UX/UI** (07). Léelos antes de cambiar comportamiento o UI.
 - `referencias/` — colección y environment de Postman, `google-services.json`, PDF del enunciado ("session 10").
-- `lapticon_app/` — el código. Su `README.md` explica arquitectura, puesta en marcha y problemas comunes.
+- `lapticon_app/` — la app Flutter. **Es otro repositorio** (`…-lapicon-flutter`) clonado aquí e ignorado por este;
+  sus commits y push se hacen DENTRO de esa carpeta. Su `README.md` explica puesta en marcha y problemas comunes.
+- `aplicacion_pwa/` — la PWA. **Otro repositorio** (`…-lapicon-pwa`) clonado aquí, igual que el de Flutter.
+- Este repositorio (`…-lapicon`) es solo documentación: `docs/`, `referencias/`, `CLAUDE.md`, `README.md`.
 
 ## Estado (22-oct-2026)
 - Prácticas 1–6 **escritas** (auth, perfil, roles, remitente, viajero, chat Firestore, calificaciones, asistente IA).
@@ -21,7 +24,7 @@ exige `Authorization: Bearer <idToken>`. El chat va directo a Firestore.
   dispositivo** (se escribió sin SDK de Flutter disponible). Espera ajustes de Gradle/Android y del contrato real de la API.
 - `lib/firebase_options.dart` y `android/` NO están en el repo: los genera `lapticon_app/setup.sh`.
 
-## PWA (`aplicacion_pwa/`, 24-oct-2026)
+## PWA (`aplicacion_pwa/`, repo …-lapicon-pwa, 24-oct-2026)
 Migración completa de la app a PWA (React 19 + TS + Vite + TanStack Query + React Router + Tailwind con los tokens v2).
 Plan y estado en `docs/10`; uso en `aplicacion_pwa/README.md`. Comandos: `npm run typecheck && npm run lint && npm test
 && npm run e2e`; `npm run humo` prueba el servidor real en solo lectura. La clave de Firebase va en

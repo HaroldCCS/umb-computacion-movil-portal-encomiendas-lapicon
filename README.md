@@ -1,18 +1,40 @@
 # Lapticon · App móvil en Flutter — Planeación (2.º corte, Computación Móvil)
 
-## 📲 Descargar la app
+## Repositorios
 
-**[⬇️ Descargar Lapticon para Android (lapticon.apk)](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases/latest/download/lapticon.apk)**
+Este repositorio es la **documentación** del proyecto (planeación, contrato de la API, diseño, decisiones, bitácora y
+referencias del curso). El código vive en dos repositorios propios:
 
-Siempre es la última versión: se compila sola con cada cambio en `main`. Ábrela en el teléfono y permite
-"instalar apps desconocidas". Las versiones anteriores están en [Releases](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon/releases).
-iPhone: ver [docs/08](docs/08-compilacion-y-pruebas-ios.md).
+| Repositorio | Qué tiene |
+|---|---|
+| [**…-lapicon-flutter**](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter) | App móvil en Flutter (Android e iOS), sus pruebas y el CI que publica el APK |
+| [**…-lapicon-pwa**](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-pwa) | La misma app como PWA instalable (React + TypeScript), sus pruebas y su CI |
+| **…-lapicon** (este) | `docs/`, `referencias/`, `CLAUDE.md` |
 
-**Versión web instalable (PWA):** [`aplicacion_pwa/`](aplicacion_pwa/README.md) — la misma app, con el mismo backend,
-Firebase y diseño, para abrir desde el navegador del celular e instalar en la pantalla de inicio (plan en
-[docs/10](docs/10-plan-migracion-pwa.md); despliegue en Cloudflare Pages pendiente).
+**[⬇️ Descargar Lapticon para Android (lapticon.apk)](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter/releases/latest/download/lapticon.apk)** — siempre la última
+versión, compilada con cada cambio en `main` del repo de Flutter. iPhone: ver [docs/08](docs/08-compilacion-y-pruebas-ios.md).
 
-> Estado: **planeación** (sin código todavía). Elaborada el 22-oct-2026 a partir del material de Canvas
+### Organización local
+
+Los repositorios de código se clonan **dentro** de esta carpeta (este repo los ignora), así las rutas relativas
+`../referencias` y `../docs` siguen funcionando:
+
+```text
+proyecto_2_corte/          ← este repo (documentación)
+├── docs/  referencias/  CLAUDE.md
+├── lapticon_app/          ← git clone …-lapicon-flutter lapticon_app
+└── aplicacion_pwa/        ← git clone …-lapicon-pwa aplicacion_pwa
+```
+
+```bash
+git clone https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter.git lapticon_app
+```
+
+```bash
+git clone https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-pwa.git aplicacion_pwa
+```
+
+> Planeación elaborada el 22-oct-2026 a partir del material de Canvas
 > (`canvas/04-datos/computacion-movil`): páginas de sesiones, cronograma, PDA, presentación *"session 10.pdf"*
 > (Lapticon – cómo funciona la app) y los archivos Postman/Firebase que adjuntó el profesor.
 
@@ -39,7 +61,11 @@ Firebase y diseño, para abrir desde el navegador del celular e instalar en la p
 | 5 | [docs/05-plan-de-trabajo.md](docs/05-plan-de-trabajo.md) | Cronograma semana a semana con tareas, entregables y checklist de cada práctica |
 | 6 | [docs/06-riesgos-y-preguntas.md](docs/06-riesgos-y-preguntas.md) | Riesgos técnicos, mitigación y **preguntas para hacerle al profesor** antes de programar |
 | 7 | [docs/07-diseno-ux-ui.md](docs/07-diseno-ux-ui.md) | Investigación UX (referentes, confianza, formularios, accesibilidad), personas, principios, sistema de diseño y especificación de pantallas |
-| — | [lapticon_app/](lapticon_app/) | Código de la app Flutter (ver su README para ejecutarla) |
+| 8 | [docs/08-plan-rediseno-ui.md](docs/08-plan-rediseno-ui.md) · [docs/08-compilacion-y-pruebas-ios.md](docs/08-compilacion-y-pruebas-ios.md) | Rediseño v2 de la interfaz · compilar y probar en iOS |
+| 9 | [docs/09-lecciones-ux-rediseno.md](docs/09-lecciones-ux-rediseno.md) | Lecciones de UX reutilizables (Flutter y PWA) |
+| 10 | [docs/10-plan-migracion-pwa.md](docs/10-plan-migracion-pwa.md) | Plan y estado de la migración a PWA |
+| — | [docs/BITACORA.md](docs/BITACORA.md) | Qué se hizo en cada paso, errores y cómo se resolvieron |
+| — | [App Flutter](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter) · [PWA](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-pwa) | Código (repositorios propios; ver su README para ejecutarlos) |
 | — | [referencias/](referencias/) | Copia de la colección y el environment de Postman, del `google-services.json` y del PDF del proyecto (*session 10*) |
 
 ## Decisiones tomadas (22-oct-2026)

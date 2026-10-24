@@ -177,3 +177,15 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 **Pendiente**
 - Conectar Cloudflare Pages (con `VITE_FIREBASE_API_KEY`), probar instalada en iPhone y Android y el chat con Flutter.
 - Respuesta del profesor a P12 (CORS) para pasar del proxy al modo directo.
+
+---
+
+## 2026-10-24 — Paso 8: un repositorio por aplicación
+
+**Qué se hizo**
+- La app Flutter pasó a [umb-computacion-movil-portal-encomiendas-lapicon-flutter](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter) y la PWA a [umb-computacion-movil-portal-encomiendas-lapicon-pwa](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-pwa), **con su historial**
+  (`git subtree split` de `lapticon_app/` y `aplicacion_pwa/`). Cada una tiene su workflow en la raíz.
+- Este repositorio queda como documentación; el código se quitó de aquí (sigue en su historial).
+- Localmente, los dos repos se clonan dentro de esta carpeta con los mismos nombres, ignorados por este repo.
+- El repo de Flutter recibió los secretos `GOOGLE_SERVICES_JSON` y `ANDROID_DEBUG_KEYSTORE_BASE64` (los mismos de antes);
+  el enlace del APK ahora apunta a sus Releases. La PWA lleva su copia de `referencias/respuestas/` para las pruebas.
