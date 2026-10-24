@@ -5,6 +5,7 @@
 > UI/UX de *Cuentas Claras* (estilo iOS, tarjetas, barra flotante); la planeación y las decisiones están en
 > `docs/08-plan-rediseno-ui.md`. El código vive en `lib/core/theme/` (tokens y tema) y `lib/core/widgets/`
 > (componentes).
+> Lo aprendido en el rediseño, reutilizable en otras apps o en una PWA: `docs/09-lecciones-ux-rediseno.md`.
 
 ## 7.1 Investigación: qué aprendimos de referentes
 
