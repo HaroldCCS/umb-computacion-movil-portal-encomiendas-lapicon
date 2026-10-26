@@ -64,6 +64,7 @@ git clone https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-
 | 8 | [docs/08-plan-rediseno-ui.md](docs/08-plan-rediseno-ui.md) · [docs/08-compilacion-y-pruebas-ios.md](docs/08-compilacion-y-pruebas-ios.md) | Rediseño v2 de la interfaz · compilar y probar en iOS |
 | 9 | [docs/09-lecciones-ux-rediseno.md](docs/09-lecciones-ux-rediseno.md) | Lecciones de UX reutilizables (Flutter y PWA) |
 | 10 | [docs/10-plan-migracion-pwa.md](docs/10-plan-migracion-pwa.md) | Plan y estado de la migración a PWA |
+| ★ | [**docs/entregables/**](docs/entregables/README.md) | **Entregables del tablero**: semanas 0–4, UX/UI, documento técnico, guion del video, código fuente y sustentación |
 | — | [docs/BITACORA.md](docs/BITACORA.md) | Qué se hizo en cada paso, errores y cómo se resolvieron |
 | — | [App Flutter](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-flutter) · [PWA](https://github.com/HaroldCCS/umb-computacion-movil-portal-encomiendas-lapicon-pwa) | Código (repositorios propios; ver su README para ejecutarlos) |
 | — | [referencias/](referencias/) | Copia de la colección y el environment de Postman, del `google-services.json` y del PDF del proyecto (*session 10*) |

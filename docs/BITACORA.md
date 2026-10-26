@@ -189,3 +189,24 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 - Localmente, los dos repos se clonan dentro de esta carpeta con los mismos nombres, ignorados por este repo.
 - El repo de Flutter recibió los secretos `GOOGLE_SERVICES_JSON` y `ANDROID_DEBUG_KEYSTORE_BASE64` (los mismos de antes);
   el enlace del APK ahora apunta a sus Releases. La PWA lleva su copia de `referencias/respuestas/` para las pruebas.
+
+---
+
+## 2026-10-26 — Paso 9: PWA desplegada y entregables del tablero
+
+**Qué se hizo**
+- PWA desplegada en Cloudflare Pages desde el panel (Git), proyecto `lapticon-pwa`, dominio
+  https://lapticon.haroldsoftware.com. Humo contra el servidor a través del proxy desplegado: 13/13.
+- Carpeta `docs/entregables/` con un documento por punto del tablero del profesor (semanas 0–4, UX/UI, documento
+  técnico, video de 2 minutos, código fuente y sustentación), al día con lo construido.
+
+**Errores encontrados y cómo se resolvieron**
+- La primera versión publicada quedó en blanco: el `wrangler.toml` del repo hacía que Cloudflare ignorara las
+  variables del panel y el build salió sin `VITE_FIREBASE_API_KEY` → se quitó el archivo (Node 22 con
+  `.node-version`) y Harold cargó la clave en el panel.
+- Sin la clave, la app se caía sin mostrar nada → ahora muestra "Falta configurar Firebase…" con "Reintentar".
+- La cuenta personal de GitHub (HaroldCCS) no aparecía en Cloudflare: estaba vinculada solo la organización
+  `haroldsoftware`; Harold la vinculó.
+
+**Pendiente**
+- Grabar el video, prueba en celular físico con las dos cuentas y la sustentación.
