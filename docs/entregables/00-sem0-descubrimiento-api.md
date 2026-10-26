@@ -2,6 +2,7 @@
 
 > Entregable del tablero: **"Sem 0 — Descubrimiento API"**. Estado: ✅ hecho (22-oct-2026).
 > Detalle completo del contrato: [`docs/03-contrato-api.md`](../03-contrato-api.md).
+> **Versión visual (Swagger):** [`docs/api/`](../api/README.md) — abrir `docs/api/index.html`.
 
 ## 1. Objetivo
 
@@ -17,6 +18,10 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
    fuera del repositorio) y se llamó **cada endpoint con `curl`** enviando `Authorization: Bearer <idToken>`.
 4. Las respuestas reales se guardaron en `referencias/respuestas/` (48 archivos, con teléfono y correo enmascarados).
    Esas mismas respuestas alimentan las pruebas de contrato de las dos apps.
+5. Con todo eso se escribió el contrato en **OpenAPI 3.1** ([`docs/api/openapi.yaml`](../api/openapi.yaml)) y un visor
+   **Swagger UI** ([`docs/api/index.html`](../api/index.html)): 28 operaciones con sus bodies, esquemas y respuestas
+   reales, marcadas ✅ funciona · ⚠️ falla o difiere · 🆕 **falta en el backend** (8 propuestas, cada una con el
+   motivo). Es más práctico que la colección de Postman para revisar los bodies y ver qué hace falta.
 
 ## 3. Datos de conexión
 
@@ -63,6 +68,7 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
 
 ## 6. Evidencia
 
+- Contrato OpenAPI y visor Swagger: [`docs/api/`](../api/README.md).
 - Respuestas reales: `referencias/respuestas/*.json`.
 - Pruebas de contrato: `test/contrato_test.dart` (Flutter) y `src/datos/contrato.test.ts` (PWA).
 - Comprobación automática contra el servidor real: `npm run humo` en la PWA (13/13 endpoints responden como espera la

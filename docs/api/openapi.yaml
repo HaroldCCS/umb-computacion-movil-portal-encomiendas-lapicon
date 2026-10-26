@@ -1,0 +1,1088 @@
+openapi: 3.1.0
+info:
+  title: Lapticon API
+  version: "2026-10-26"
+  description: |
+    Contrato del backend compartido del curso (Node/Express + MongoDB en Render), reconstruido a partir de la colección
+    de Postman del profesor y **verificado con peticiones reales** el 22-oct-2026 con dos cuentas propias (remitente y
+    viajero). Las respuestas de ejemplo son reales (teléfono y correo ocultos) y están en `referencias/respuestas/`.
+
+    **Cómo leer este documento**
+
+    | Marca | Significado |
+    |---|---|
+    | ✅ | Existe y responde como se documenta |
+    | ⚠️ | Existe, pero falla en el servidor o se comporta distinto a lo esperado |
+    | 🆕 | **No existe**: la app lo necesita y hoy lo resuelve en el dispositivo. Es una propuesta para el backend |
+
+    **Autenticación:** iniciar sesión con Firebase Auth (proyecto `lapticon-eba31`) y enviar el `idToken` en
+    `Authorization: Bearer <idToken>`. Son públicas solo `GET /api/ratings/{uid}` y `/api/ciudades/*`.
+    El backend toma el usuario del token (`req.user.uid`): **nunca** se manda el uid propio en el body.
+
+    **Errores:** siempre `{ "error": "…" }` (a veces con `detalle`). Los éxitos usan `message` en usuarios y `mensaje`
+    en el resto.
+
+    **Arranque en frío:** Render gratuito duerme el servidor; la primera petición puede tardar hasta ~60 s.
+  contact:
+    name: Harold Camargo — Computación Móvil, UMB
+# Ejemplos reales reutilizados (anclas YAML; `$ref` no sirve dentro de `example`).
+x-ejemplos:
+  UsuarioHarold: &usuario
+    _id: 6ada5bbe55174b0d3b920bae
+    uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+    nombre: Harold
+    apellido: Camargo
+    telefono: <oculto>
+    nacionalidad: Colombia
+    email: <oculto>
+    createdAt: "2026-10-22T18:53:50.787Z"
+    updatedAt: "2026-10-22T18:54:11.711Z"
+    __v: 0
+  ViajeAA123: &viaje
+    _id: 6ad95bc8f8b6da54469cfc4f
+    uid: mdXW0aoFp3dCis7gGvLBzTpHFBy1
+    numeroVuelo: AA123
+    ciudadOrigen: Bogota
+    ciudadDestino: Miami
+    fechaViaje: "2026-12-01T00:00:00.000Z"
+    estado: disponible
+    createdAt: "2026-10-22T00:41:44.670Z"
+    __v: 0
+  EncomiendaDisponible: &encomienda
+    _id: 6ada5d86a4012aeb7e63d853
+    uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+    ciudadOrigen: Bogota
+    ciudadDestino: Miami
+    observaciones: "Prueba Lapticon: libro pequeño"
+    moneda: USD
+    valor: 15
+    estado: disponible
+    viajeroId: null
+    fechaCreacion: "2026-10-22T19:01:26.915Z"
+    fechaVencimiento: "2026-11-22T19:01:26.915Z"
+    fechaDisponibleDesde: "2026-10-22T19:01:26.915Z"
+    fechaLimiteEntrega: null
+    __v: 0
+  Calificacion5: &calificacion
+    _id: 6ada5e83a4012aeb7e63d87f
+    usuarioOrigen: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+    usuarioDestino: IeMGfjHQ7XTc0W08QrTzx1flvo13
+    rolDestino: viajero
+    calificacion: 5
+    comentario: Prueba antes de entregar
+    timestamp: "2026-10-22T19:05:39.400Z"
+    __v: 0
+
+servers:
+  - url: https://lapticon-backend.onrender.com
+    description: Backend del curso (producción)
+tags:
+  - name: Autenticación
+    description: Firebase Auth. En la app no se llama a este endpoint; se usa el SDK de Firebase.
+  - name: Usuarios
+    description: Perfil del usuario autenticado.
+  - name: Viajes
+    description: El viajero registra su vuelo; solo puede tener un viaje `disponible` a la vez.
+  - name: Encomiendas
+    description: El remitente publica; el viajero toma, entrega y el remitente confirma.
+  - name: Calificaciones
+    description: Remitente y viajero se califican de 1 a 5.
+  - name: Chats
+    description: Los mensajes van directo a Firestore; el backend solo informa si el chat está cerrado.
+  - name: Ciudades
+    description: Listas públicas para autocompletar. Enviar los nombres exactamente como vienen (`Bogota`, sin tilde).
+  - name: Chatbot
+    description: Asistente con IA (OpenRouter) a través del backend.
+  - name: 🆕 Faltan en el backend
+    description: |
+      Endpoints que la app necesita y el backend no tiene. Hoy la app los suple guardando datos **por dispositivo**
+      (`SharedPreferences` / `localStorage`) o cruzando listas, así que se pierden al cambiar de celular.
+      Es una propuesta: cuerpos y respuestas siguen el estilo del backend actual.
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ───────────────────────────── Autenticación ─────────────────────────────
+  /v1/accounts:signInWithPassword:
+    servers:
+      - url: https://identitytoolkit.googleapis.com
+        description: Firebase Auth (Google Identity Toolkit)
+    post:
+      tags: [Autenticación]
+      summary: ✅ Obtener el idToken (solo para pruebas en Postman/Swagger)
+      description: |
+        Devuelve el `idToken` que se pega en **Authorize** (arriba a la derecha). Dura 1 hora.
+        La `key` es la API key web de Firebase (está en el environment de Postman). En la app se usa
+        `signInWithEmailAndPassword()` y `getIdToken()` del SDK.
+      operationId: obtenerIdToken
+      security: []
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema: { type: string }
+          description: API key web de Firebase del proyecto `lapticon-eba31`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, returnSecureToken]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                returnSecureToken: { type: boolean, const: true }
+            example: { email: tu-correo@ejemplo.com, password: "********", returnSecureToken: true }
+      responses:
+        "200":
+          description: Sesión iniciada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  idToken: { type: string, description: "JWT para `Authorization: Bearer`" }
+                  localId: { type: string, description: uid de Firebase }
+                  email: { type: string }
+                  refreshToken: { type: string }
+                  expiresIn: { type: string, example: "3600" }
+        "400":
+          description: Credenciales inválidas (`INVALID_LOGIN_CREDENTIALS`).
+
+  # ───────────────────────────── Usuarios ─────────────────────────────
+  /api/users/register:
+    post:
+      tags: [Usuarios]
+      summary: ✅ Registrar o actualizar mi perfil
+      description: Crea el perfil del usuario del token o lo actualiza si ya existe. El `email` lo toma del token.
+      operationId: registrarUsuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UsuarioEntrada" }
+            example: { nombre: Harold, apellido: Camargo, telefono: "3001234567", nacionalidad: Colombia }
+      responses:
+        "201":
+          description: Perfil guardado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaUsuario" }
+              example:
+                message: Usuario guardado correctamente
+                user: *usuario
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/users/{uid}:
+    parameters:
+      - $ref: "#/components/parameters/Uid"
+    get:
+      tags: [Usuarios]
+      summary: ✅ Ver mi perfil
+      description: Solo funciona con el uid propio. Cualquier otro uid (exista o no) responde **403**.
+      operationId: obtenerUsuario
+      responses:
+        "200":
+          description: Mi perfil.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: "#/components/schemas/Usuario" }
+              examples:
+                propio:
+                  summary: Perfil propio
+                  value:
+                    user:
+                      _id: 6ada5bbe55174b0d3b920bae
+                      uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+                      nombre: Harold
+                      apellido: Camargo
+                      telefono: <oculto>
+                      nacionalidad: Colombia
+                      email: <oculto>
+                      createdAt: "2026-10-22T18:53:50.787Z"
+                      updatedAt: "2026-10-22T18:54:11.711Z"
+                      __v: 0
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403":
+          description: El uid no es el mío.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: No autorizado para consultar este usuario }
+    put:
+      tags: [Usuarios]
+      summary: ⚠️ Actualizar mi perfil (no guarda `rol`)
+      description: |
+        Acepta campos parciales. **No guarda `rol`**: responde 200 pero lo descarta, por eso el rol vive en el
+        dispositivo. Ver la propuesta `PUT /api/users/{uid}/rol`.
+      operationId: actualizarUsuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UsuarioParcial" }
+            example: { nombre: Harold, telefono: "3001234567" }
+      responses:
+        "200":
+          description: Perfil actualizado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaUsuario" }
+              example:
+                message: Usuario actualizado correctamente
+                user: *usuario
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403":
+          description: El uid no es el mío.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: No autorizado para modificar este usuario }
+
+  # ───────────────────────────── Viajes ─────────────────────────────
+  /api/viajes:
+    post:
+      tags: [Viajes]
+      summary: ✅ Registrar mi viaje
+      description: |
+        El viajero registra su vuelo. Solo se permite **un viaje `disponible`** a la vez.
+        `fechaViaje` se guarda como medianoche UTC: leerla como fecha de calendario, no como instante (en Colombia se
+        vería un día antes).
+      operationId: crearViaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ViajeEntrada" }
+            example: { numeroVuelo: AV10, ciudadOrigen: Bogota, ciudadDestino: Miami, fechaViaje: "2026-12-01" }
+      responses:
+        "201":
+          description: Viaje creado.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Viaje" }
+              example: *viaje
+        "400":
+          description: Ya tengo un viaje disponible.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Ya tienes un viaje disponible. Debes cerrarlo o cambiar su estado antes de registrar uno nuevo. }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+    get:
+      tags: [Viajes]
+      summary: ✅ Listar mis viajes
+      operationId: listarMisViajes
+      responses:
+        "200":
+          description: Mis viajes (vacío `[]` si no hay).
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Viaje" } }
+              example: []
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/viajes/disponible:
+    get:
+      tags: [Viajes]
+      summary: ✅ Mi viaje disponible
+      operationId: miViajeDisponible
+      responses:
+        "200":
+          description: El viaje activo (objeto directo, sin envoltorio).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Viaje" }
+              example: *viaje
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "404":
+          description: No tengo viaje activo. Ojo, usa `mensaje`, no `error`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+              example: { mensaje: No hay viajes disponibles }
+
+  /api/viajes/buscar:
+    get:
+      tags: [Viajes]
+      summary: ✅ Buscar viajeros por ciudad de origen
+      operationId: buscarViajes
+      parameters:
+        - name: ciudad
+          in: query
+          required: true
+          description: Ciudad de **origen**, tal como la devuelve `/api/ciudades/ciudades`.
+          schema: { type: string, example: Bogota }
+      responses:
+        "200":
+          description: Viajes desde esa ciudad (incluye el `uid` del viajero).
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Viaje" } }
+              example:
+                - *viaje
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/vuelos/{numero}/{fecha}:
+    get:
+      tags: [Viajes]
+      summary: ⚠️ Verificar un vuelo (AeroDataBox) — hoy da 500
+      description: |
+        Existe, pero el servidor no tiene configurada `RAPIDAPI_KEY`. La app muestra "Sin verificar" y deja registrar
+        el viaje igual. La forma de la respuesta exitosa **no se ha podido confirmar**.
+      operationId: verificarVuelo
+      parameters:
+        - { name: numero, in: path, required: true, schema: { type: string, example: AV10 } }
+        - { name: fecha, in: path, required: true, schema: { type: string, format: date, example: "2026-12-01" } }
+      responses:
+        "200":
+          description: Datos del vuelo (sin confirmar).
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "500":
+          description: Falta la clave en el servidor.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: RAPIDAPI_KEY no está configurada en el servidor }
+
+  # ───────────────────────────── Encomiendas ─────────────────────────────
+  /api/encomiendas:
+    post:
+      tags: [Encomiendas]
+      summary: ⚠️ Publicar una encomienda (no valida el body)
+      description: |
+        El remitente publica. **El backend no valida**: `{}` crea una encomienda vacía con 201, así que la app valida
+        todo antes (ciudades de la lista, origen ≠ destino, valor entero > 0, descripción de 3 a 200 caracteres).
+        `fechaVencimiento` se ignora: siempre vence un mes después de creada.
+      operationId: crearEncomienda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EncomiendaEntrada" }
+            example: { ciudadOrigen: Bogota, ciudadDestino: Miami, observaciones: "Prueba Lapticon: libro pequeño", moneda: USD, valor: 15 }
+      responses:
+        "201":
+          description: Encomienda creada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Encomienda" }
+              example: *encomienda
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+    get:
+      tags: [Encomiendas]
+      summary: ✅ Listar mis encomiendas (como remitente)
+      description: Solo las que yo publiqué. **No** incluye las que tomé como viajero (ver `GET /api/encomiendas/viajero`).
+      operationId: listarMisEncomiendas
+      responses:
+        "200":
+          description: Mis encomiendas.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+              example:
+                - *encomienda
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/disponibles:
+    get:
+      tags: [Encomiendas]
+      summary: ⚠️ Encomiendas disponibles en una ruta (sin uid del remitente)
+      description: |
+        Trae `remitenteNombre` pero **no** el `uid` del remitente, e incluye las mías. La app la cruza con
+        `GET /api/encomiendas` para no ofrecerle al viajero sus propias encomiendas.
+      operationId: listarDisponibles
+      parameters:
+        - { name: origen, in: query, required: true, schema: { type: string, example: Bogota } }
+        - { name: destino, in: query, required: true, schema: { type: string, example: Miami } }
+      responses:
+        "200":
+          description: Encomiendas en estado `disponible` para esa ruta.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/EncomiendaPublica" } }
+              example:
+                - _id: 6ad95be0f8b6da54469cfc57
+                  ciudadOrigen: Bogota
+                  ciudadDestino: Miami
+                  observaciones: demo taller flutter
+                  valor: 10
+                  moneda: USD
+                  estado: disponible
+                  remitenteNombre: Manuel
+                  fechaCreacion: "2026-10-22T00:42:08.556Z"
+                  fechaVencimiento: "2026-11-22T00:42:08.556Z"
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/tomar/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EncomiendaId"
+    put:
+      tags: [Encomiendas]
+      summary: ⚠️ Tomar una encomienda (como viajero)
+      description: |
+        Sin body: el viajero sale del token y queda en `viajeroId`. Responde solo un mensaje, sin la encomienda.
+        **No valida roles**: el remitente puede tomar su propia encomienda.
+      operationId: tomarEncomienda
+      responses:
+        "200":
+          description: Tomada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+              example: { mensaje: Encomienda tomada exitosamente }
+        "400":
+          description: Ya no está disponible.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Esta encomienda ya fue tomada o vencida }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/{id}/estado:
+    parameters:
+      - $ref: "#/components/parameters/EncomiendaId"
+    put:
+      tags: [Encomiendas]
+      summary: ⚠️ Cambiar el estado de una encomienda
+      description: |
+        Ciclo: `disponible → tomada → entregada → recibida`; `vencida` al mes o cuando el remitente la retira.
+        **No existe `cancelada`** (aunque la colección de Postman la usa): da 400. Volver a `disponible` no limpia
+        `viajeroId`. No valida qué rol hace cada cambio.
+      operationId: cambiarEstadoEncomienda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { $ref: "#/components/schemas/EstadoEncomienda" }
+            examples:
+              retirar: { summary: El remitente la retira, value: { estado: vencida } }
+              entregar: { summary: El viajero la entrega, value: { estado: entregada } }
+              recibir: { summary: El remitente confirma, value: { estado: recibida } }
+      responses:
+        "200":
+          description: Estado actualizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string }
+                  encomienda: { $ref: "#/components/schemas/Encomienda" }
+              example:
+                mensaje: Estado actualizado
+                encomienda:
+                  _id: 6ada5d89a4012aeb7e63d85a
+                  uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+                  estado: vencida
+                  viajeroId: null
+                  fechaCreacion: "2026-10-22T19:01:29.023Z"
+                  fechaVencimiento: "2026-11-22T19:01:29.023Z"
+                  fechaDisponibleDesde: "2026-10-22T19:01:29.023Z"
+                  fechaLimiteEntrega: null
+                  __v: 0
+        "400":
+          description: Estado inválido.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: "Estado inválido. Debe ser uno de: disponible, tomada, vencida, entregada, recibida" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403":
+          description: No soy el remitente ni el viajero de esa encomienda.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: No autorizado para modificar esta encomienda }
+
+  # ───────────────────────────── Calificaciones ─────────────────────────────
+  /api/ratings:
+    post:
+      tags: [Calificaciones]
+      summary: ⚠️ Calificar a otro usuario
+      description: |
+        `usuarioOrigen` sale del token. **Ignora `encomiendaId`** y no comprueba que la encomienda esté entregada.
+        Body vacío o calificación fuera de 1-5 → **500** (no 400), por eso la app limita antes de enviar.
+      operationId: crearCalificacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CalificacionEntrada" }
+            example: { usuarioDestino: IeMGfjHQ7XTc0W08QrTzx1flvo13, rolDestino: viajero, calificacion: 5, comentario: "Excelente, muy puntual" }
+      responses:
+        "201":
+          description: Guardada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string }
+                  data: { $ref: "#/components/schemas/Calificacion" }
+              example:
+                mensaje: Calificación guardada
+                data: *calificacion
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "500":
+          description: Body vacío o calificación fuera de rango (debería ser 400).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Error interno al guardar calificación }
+
+  /api/ratings/{uid}:
+    parameters:
+      - $ref: "#/components/parameters/Uid"
+    get:
+      tags: [Calificaciones]
+      summary: ✅ Calificaciones de un usuario (pública)
+      operationId: obtenerCalificaciones
+      security: []
+      responses:
+        "200":
+          description: Resumen y lista. `promedio` es `null` si no tiene calificaciones.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResumenCalificaciones" }
+              example:
+                total: 1
+                promedio: 5
+                calificaciones:
+                  - *calificacion
+
+  # ───────────────────────────── Chats ─────────────────────────────
+  /api/chats/estado/{chatId}:
+    get:
+      tags: [Chats]
+      summary: ⚠️ Estado de un chat — hoy da 500
+      description: |
+        `chatId` = los dos uid **ordenados** y unidos con `_`, así el mismo par abre siempre el mismo chat.
+        Debería decir si el chat se cerró (ambos calificaron tras la entrega). Hoy responde 500 siempre, y la app lo
+        trata como **abierto**. Los mensajes van directo a Firestore: `chats/{chatId}/mensajes/{autoId}` con
+        `{ texto, emisorUid, creadoEn }`.
+      operationId: estadoChat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema: { type: string, example: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03_IeMGfjHQ7XTc0W08QrTzx1flvo13 }
+      responses:
+        "200":
+          description: Forma esperada (sin confirmar).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  estado: { type: string, enum: [abierto, cerrado] }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "500":
+          description: Falla del servidor.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Error interno del servidor }
+
+  # ───────────────────────────── Ciudades ─────────────────────────────
+  /api/ciudades/paises:
+    get:
+      tags: [Ciudades]
+      summary: ✅ Listar países
+      description: Arreglo plano en inglés, con algunos nombres mal codificados y duplicados.
+      operationId: listarPaises
+      security: []
+      responses:
+        "200":
+          description: Países.
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+              example: [Afghanistan, Albania, Colombia, United States]
+
+  /api/ciudades/ciudades:
+    get:
+      tags: [Ciudades]
+      summary: ✅ Listar ciudades
+      description: ~1.800–2.000 ciudades de América, sin tildes. La app las guarda 7 días en el dispositivo.
+      operationId: listarCiudades
+      security: []
+      responses:
+        "200":
+          description: Ciudades.
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+              example: [Bogota, Medellin, Miami, Madrid]
+
+  # ───────────────────────────── Chatbot ─────────────────────────────
+  /api/chatbot:
+    post:
+      tags: [Chatbot]
+      summary: ⚠️ Preguntar al asistente — hoy da 500
+      description: La clave de OpenRouter del servidor no es válida. La forma de la respuesta exitosa no está confirmada.
+      operationId: preguntarChatbot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mensajeUsuario]
+              properties:
+                mensajeUsuario: { type: string, minLength: 1 }
+            example: { mensajeUsuario: "¿Cómo envío un paquete con Lapticon?" }
+      responses:
+        "200":
+          description: Respuesta del asistente (sin confirmar).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  respuesta: { type: string }
+        "400":
+          description: Mensaje vacío.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Mensaje vacío }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "500":
+          description: Falla con OpenRouter.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error: Error al generar respuesta con OpenRouter
+                detalle: { error: { message: User not found., code: 401 } }
+
+  # ───────────────────────────── 🆕 Faltan en el backend ─────────────────────────────
+  /api/users/{uid}/rol:
+    parameters:
+      - $ref: "#/components/parameters/Uid"
+    put:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Guardar mi rol
+      description: |
+        **Por qué hace falta:** `PUT /api/users/{uid}` descarta `rol`, así que la app lo guarda en el dispositivo y al
+        entrar desde otro celular hay que elegirlo otra vez. Alternativa equivalente: aceptar `rol` en el PUT actual.
+      operationId: guardarRol
+      x-estado: propuesto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rol]
+              properties:
+                rol: { $ref: "#/components/schemas/Rol" }
+            example: { rol: viajero }
+      responses:
+        "200":
+          description: Rol guardado; el perfil lo incluye desde entonces.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RespuestaUsuario" }
+        "400":
+          description: Rol inválido.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: "Rol inválido. Debe ser uno de: remitente, viajero" }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+
+  /api/users/{uid}/publico:
+    parameters:
+      - $ref: "#/components/parameters/Uid"
+    get:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Perfil público de otro usuario
+      description: |
+        **Por qué hace falta:** `GET /api/users/{uid}` da 403 para cualquier otro usuario, así que el remitente no puede
+        ver el nombre del viajero que tomó su encomienda (en el chat aparece como "Chat") ni su reputación junto.
+        Devolvería solo datos no sensibles: nada de teléfono ni correo.
+      operationId: perfilPublico
+      x-estado: propuesto
+      responses:
+        "200":
+          description: Datos públicos.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PerfilPublico" }
+              example: { uid: IeMGfjHQ7XTc0W08QrTzx1flvo13, nombre: Harold, apellido: C., rol: viajero, promedio: 5, totalCalificaciones: 1 }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+
+  /api/encomiendas/viajero:
+    get:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Encomiendas que tomé (como viajero)
+      description: |
+        **Por qué hace falta:** `GET /api/encomiendas` solo trae las que publiqué y `PUT /tomar/{id}` no devuelve la
+        encomienda, así que la app guarda en el dispositivo cuáles tomó el viajero. Si cambia de celular, pierde
+        "Mis entregas". Filtraría por `viajeroId` = uid del token.
+      operationId: listarTomadas
+      x-estado: propuesto
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/EstadoEncomienda" }
+      responses:
+        "200":
+          description: Encomiendas con `viajeroId` = yo.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/EncomiendaId"
+    get:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Detalle de una encomienda
+      description: |
+        **Por qué hace falta:** no hay forma de pedir una sola encomienda; la app recarga listas completas y, para el
+        viajero, mezcla lo guardado en el dispositivo con `/disponibles`. Solo la verían su remitente y su viajero.
+      operationId: obtenerEncomienda
+      x-estado: propuesto
+      responses:
+        "200":
+          description: La encomienda.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Encomienda" }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+        "404": { $ref: "#/components/responses/NoEncontrado" }
+    delete:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Retirar una encomienda (cancelar)
+      description: |
+        **Por qué hace falta:** no existe el estado `cancelada`, así que "retirar" deja la encomienda como `vencida` y
+        en el historial no se distingue de una que caducó. Solo el remitente y solo si está `disponible`.
+        Alternativa equivalente: agregar `cancelada` a los estados de `PUT /{id}/estado`.
+      operationId: retirarEncomienda
+      x-estado: propuesto
+      responses:
+        "200":
+          description: Retirada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mensaje" }
+              example: { mensaje: Encomienda retirada }
+        "400":
+          description: Ya fue tomada.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Solo se puede retirar una encomienda disponible }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+
+  /api/viajes/{id}/estado:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, example: 6ad95bc8f8b6da54469cfc4f }
+    put:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Cerrar o cancelar mi viaje
+      description: |
+        **Por qué hace falta:** el error de `POST /api/viajes` dice "Debes cerrarlo o cambiar su estado", pero no
+        existe ningún endpoint para hacerlo. Si el viajero se equivoca de fecha o cancela el vuelo, queda bloqueado
+        hasta que pase la fecha del viaje.
+      operationId: cambiarEstadoViaje
+      x-estado: propuesto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [completado, cancelado] }
+            example: { estado: cancelado }
+      responses:
+        "200":
+          description: Estado actualizado.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensaje: { type: string }
+                  viaje: { $ref: "#/components/schemas/Viaje" }
+        "400":
+          description: Tiene encomiendas tomadas sin entregar.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: No puedes cancelar un viaje con encomiendas por entregar }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+
+  /api/ratings/pendientes:
+    get:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Encomiendas que me falta calificar
+      description: |
+        **Por qué hace falta:** como `POST /api/ratings` ignora `encomiendaId`, el backend no sabe qué entrega se
+        calificó; la app lo recuerda en el dispositivo para no pedir la calificación dos veces. Requiere guardar
+        `encomiendaId` en cada calificación y aceptar solo encomiendas `entregada` o `recibida`.
+      operationId: calificacionesPendientes
+      x-estado: propuesto
+      responses:
+        "200":
+          description: Entregas mías sin calificar.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    encomiendaId: { type: string }
+                    usuarioDestino: { type: string }
+                    rolDestino: { $ref: "#/components/schemas/Rol" }
+                    ciudadOrigen: { type: string }
+                    ciudadDestino: { type: string }
+              example:
+                - { encomiendaId: 6ada5d86a4012aeb7e63d853, usuarioDestino: IeMGfjHQ7XTc0W08QrTzx1flvo13, rolDestino: viajero, ciudadOrigen: Bogota, ciudadDestino: Miami }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/users/{uid}/token-push:
+    parameters:
+      - $ref: "#/components/parameters/Uid"
+    put:
+      tags: [🆕 Faltan en el backend]
+      summary: 🆕 Registrar el token de notificaciones
+      description: |
+        **Por qué hace falta:** hoy nadie se entera de que su encomienda fue tomada, entregada o de un mensaje nuevo
+        si no abre la app. Con el token de Firebase Cloud Messaging, el backend avisaría en cada cambio de estado.
+      operationId: guardarTokenPush
+      x-estado: propuesto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, plataforma]
+              properties:
+                token: { type: string }
+                plataforma: { type: string, enum: [android, ios, web] }
+            example: { token: "fcm-token-del-dispositivo", plataforma: android }
+      responses:
+        "204": { description: Guardado. }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (idToken de Firebase)
+      description: Pega solo el `idToken` (sin la palabra Bearer). Se obtiene con el primer endpoint y dura 1 hora.
+
+  parameters:
+    Uid:
+      name: uid
+      in: path
+      required: true
+      description: uid de Firebase.
+      schema: { type: string, example: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03 }
+    EncomiendaId:
+      name: id
+      in: path
+      required: true
+      description: "`_id` de MongoDB de la encomienda."
+      schema: { type: string, example: 6ada5d86a4012aeb7e63d853 }
+
+  responses:
+    NoAutenticado:
+      description: Sin token o token inválido/vencido.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          examples:
+            sinToken: { summary: Sin encabezado, value: { error: Token no proporcionado } }
+            invalido: { summary: Token inválido o vencido, value: { error: Token inválido } }
+    NoAutorizado:
+      description: El recurso no es mío.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NoEncontrado:
+      description: No existe.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+        detalle: { description: Detalle técnico opcional. }
+    Mensaje:
+      type: object
+      properties:
+        mensaje: { type: string }
+
+    Rol:
+      type: string
+      enum: [remitente, viajero]
+
+    UsuarioEntrada:
+      type: object
+      required: [nombre, apellido, telefono, nacionalidad]
+      properties:
+        nombre: { type: string, example: Harold }
+        apellido: { type: string, example: Camargo }
+        telefono: { type: string, example: "3001234567" }
+        nacionalidad: { type: string, example: Colombia, description: Uno de `/api/ciudades/paises`. }
+    UsuarioParcial:
+      type: object
+      description: Cualquier subconjunto de los campos del perfil. `rol` se descarta.
+      properties:
+        nombre: { type: string }
+        apellido: { type: string }
+        telefono: { type: string }
+        nacionalidad: { type: string }
+    Usuario:
+      type: object
+      properties:
+        _id: { type: string }
+        uid: { type: string, description: uid de Firebase }
+        nombre: { type: string }
+        apellido: { type: string }
+        telefono: { type: string }
+        nacionalidad: { type: string }
+        email: { type: string, description: Lo toma del token. }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        __v: { type: integer }
+    RespuestaUsuario:
+      type: object
+      properties:
+        message: { type: string }
+        user: { $ref: "#/components/schemas/Usuario" }
+    PerfilPublico:
+      type: object
+      description: Propuesto. Sin teléfono ni correo.
+      properties:
+        uid: { type: string }
+        nombre: { type: string }
+        apellido: { type: string, description: Solo la inicial. }
+        rol: { $ref: "#/components/schemas/Rol" }
+        promedio: { type: [number, "null"] }
+        totalCalificaciones: { type: integer }
+
+    ViajeEntrada:
+      type: object
+      required: [numeroVuelo, ciudadOrigen, ciudadDestino, fechaViaje]
+      properties:
+        numeroVuelo: { type: string, example: AV10 }
+        ciudadOrigen: { type: string, example: Bogota }
+        ciudadDestino: { type: string, example: Miami }
+        fechaViaje: { type: string, format: date, example: "2026-12-01" }
+    Viaje:
+      type: object
+      properties:
+        _id: { type: string }
+        uid: { type: string, description: uid del viajero }
+        numeroVuelo: { type: string }
+        ciudadOrigen: { type: string }
+        ciudadDestino: { type: string }
+        fechaViaje: { type: string, format: date-time, description: "Medianoche UTC: leer como fecha de calendario." }
+        estado: { type: string, enum: [disponible, completado], description: Pasa a `completado` al consultar después de la fecha. }
+        createdAt: { type: string, format: date-time }
+        __v: { type: integer }
+
+    EstadoEncomienda:
+      type: string
+      enum: [disponible, tomada, vencida, entregada, recibida]
+      description: No existe `cancelada`.
+    EncomiendaEntrada:
+      type: object
+      required: [ciudadOrigen, ciudadDestino, observaciones, moneda, valor]
+      description: El backend no exige nada; estas reglas las aplica la app.
+      properties:
+        ciudadOrigen: { type: string, example: Bogota }
+        ciudadDestino: { type: string, example: Miami, description: Distinta del origen. }
+        observaciones: { type: string, minLength: 3, maxLength: 200, description: Qué se envía. }
+        moneda: { type: string, enum: [USD, COP, EUR], example: USD }
+        valor: { type: integer, minimum: 1, description: Lo que se le paga al viajero. }
+    Encomienda:
+      type: object
+      properties:
+        _id: { type: string }
+        uid: { type: string, description: uid del remitente }
+        viajeroId: { type: [string, "null"], description: uid del viajero que la tomó }
+        ciudadOrigen: { type: string }
+        ciudadDestino: { type: string }
+        observaciones: { type: string }
+        moneda: { type: string }
+        valor: { type: number }
+        estado: { $ref: "#/components/schemas/EstadoEncomienda" }
+        fechaCreacion: { type: string, format: date-time }
+        fechaVencimiento: { type: string, format: date-time, description: Siempre creación + 1 mes. }
+        fechaDisponibleDesde: { type: string, format: date-time }
+        fechaLimiteEntrega: { type: [string, "null"], format: date-time }
+        __v: { type: integer }
+    EncomiendaPublica:
+      type: object
+      description: Como aparece en `/disponibles`, sin `uid` ni `viajeroId`.
+      properties:
+        _id: { type: string }
+        ciudadOrigen: { type: string }
+        ciudadDestino: { type: string }
+        observaciones: { type: string }
+        valor: { type: number }
+        moneda: { type: string }
+        estado: { $ref: "#/components/schemas/EstadoEncomienda" }
+        remitenteNombre: { type: string }
+        fechaCreacion: { type: string, format: date-time }
+        fechaVencimiento: { type: string, format: date-time }
+
+    CalificacionEntrada:
+      type: object
+      required: [usuarioDestino, rolDestino, calificacion]
+      properties:
+        usuarioDestino: { type: string, description: uid de quien recibe la calificación }
+        rolDestino: { $ref: "#/components/schemas/Rol" }
+        calificacion: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string }
+        encomiendaId: { type: string, description: "Se acepta pero **se ignora** (ver propuesta `/api/ratings/pendientes`)." }
+    Calificacion:
+      type: object
+      properties:
+        _id: { type: string }
+        usuarioOrigen: { type: string }
+        usuarioDestino: { type: string }
+        rolDestino: { $ref: "#/components/schemas/Rol" }
+        calificacion: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string }
+        timestamp: { type: string, format: date-time }
+        __v: { type: integer }
+    ResumenCalificaciones:
+      type: object
+      properties:
+        total: { type: integer }
+        promedio: { type: [number, "null"] }
+        calificaciones: { type: array, items: { $ref: "#/components/schemas/Calificacion" } }

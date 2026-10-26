@@ -4,6 +4,8 @@ Fuentes: `referencias/Lapticon.postman_collection.json`, `referencias/Lapticon.p
 diapositivas "Mapa de endpoints" de *session 10.pdf* y **pruebas reales con dos cuentas propias** (remitente y viajero,
 22-oct-2026). Las respuestas están en `referencias/respuestas/` (teléfono y correo enmascarados).
 
+> **Versión Swagger/OpenAPI** de este contrato, con bodies, esquemas y los endpoints que faltan: [`docs/api/`](api/README.md).
+
 Leyenda de verificación: ✅ comprobado contra el servidor · 📄 documentado (Postman/PDF), forma de la respuesta **sin confirmar** · ⚠️ falla o se comporta distinto a lo documentado.
 
 ## 3.1 Datos de conexión

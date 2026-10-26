@@ -4,7 +4,7 @@ Lo que el profesor pidió en el tablero (26-oct-2026), cada punto con su documen
 
 | Tablero | Documento | Estado |
 |---|---|---|
-| Sem 0 · Descubrimiento API | [00-sem0-descubrimiento-api.md](00-sem0-descubrimiento-api.md) | ✅ hecho |
+| Sem 0 · Descubrimiento API | [00-sem0-descubrimiento-api.md](00-sem0-descubrimiento-api.md) · [Swagger](../api/README.md) | ✅ hecho |
 | Sem 1 · Login / Registro | [01-sem1-login-registro.md](01-sem1-login-registro.md) | ✅ hecho |
 | Sem 2 · Registro viajes | [02-sem2-registro-viajes.md](02-sem2-registro-viajes.md) | ✅ hecho |
 | Sem 3 · Registro encomiendas | [03-sem3-registro-encomiendas.md](03-sem3-registro-encomiendas.md) | ✅ hecho |

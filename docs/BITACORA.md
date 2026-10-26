@@ -210,3 +210,18 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 
 **Pendiente**
 - Grabar el video, prueba en celular físico con las dos cuentas y la sustentación.
+
+## 2026-10-26 — Paso 10: contrato de la API en Swagger
+
+**Qué se hizo**
+- La colección de Postman se pasó a **OpenAPI 3.1** (`docs/api/openapi.yaml`) con los bodies, esquemas y respuestas
+  reales de `referencias/respuestas/`, y un visor **Swagger UI** (`docs/api/index.html`) que abre con doble clic.
+- 28 operaciones: 11 ✅, 9 ⚠️ (500 en el servidor o comportamiento distinto) y **8 🆕 que faltan en el backend**
+  (rol, perfil público, encomiendas tomadas, detalle, retirar, cerrar viaje, calificaciones pendientes, token push),
+  cada una con el motivo.
+- Validado con Redocly: 0 errores.
+
+**Errores encontrados y cómo se resolvieron**
+- `$ref` dentro de `example` no lo resuelve Swagger → los ejemplos repetidos usan anclas YAML (`x-ejemplos`).
+- El backend no envía `Access-Control-Allow-Origin`, así que "Try it out" fallaría en el navegador → el visor es de
+  solo lectura y las pruebas siguen en Postman o `curl`.
