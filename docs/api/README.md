@@ -25,6 +25,10 @@ verdad** (22-oct-2026) y con los endpoints que **faltan** en el backend.
 | ⚠️ | Existe, pero falla en el servidor (500) o se comporta distinto (no valida, descarta campos) | 9 |
 | 🆕 | **No existe**: la app lo necesita y hoy lo resuelve en el dispositivo | 8 |
 
+Cada título dice además **quién la usa**: 📦 Remitente, ✈️ Viajero, los dos o 🌐 Público (también en `x-roles`), y la
+introducción tiene una tabla de endpoints por rol. El backend no tiene roles: no guarda `rol` ni controla quién hace
+cada acción; eso lo decide la app.
+
 Cada operación trae el body de entrada con su esquema, las respuestas reales por código (200/201, 400, 401, 403, 404,
 500) y, cuando aplica, la explicación de lo que hace distinto el servidor.
 

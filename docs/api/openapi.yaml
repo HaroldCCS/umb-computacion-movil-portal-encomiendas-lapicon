@@ -19,6 +19,17 @@ info:
     `Authorization: Bearer <idToken>`. Son públicas solo `GET /api/ratings/{uid}` y `/api/ciudades/*`.
     El backend toma el usuario del token (`req.user.uid`): **nunca** se manda el uid propio en el body.
 
+    **Roles:** el backend **no tiene roles** (no guarda `rol` ni comprueba quién hace cada acción); el rol lo decide la
+    app. Cada operación dice en el título quién la usa (📦 Remitente · ✈️ Viajero · 🌐 Público) y lo repite en
+    `x-roles`.
+
+    | Rol | Qué hace | Endpoints |
+    |---|---|---|
+    | 📦 Remitente | Publica encomiendas, busca viajeros, retira, confirma que la recibió y califica | `POST /api/encomiendas`, `GET /api/encomiendas`, `GET /api/viajes/buscar`, `PUT …/estado` (`vencida`, `recibida`), `POST /api/ratings` |
+    | ✈️ Viajero | Registra su viaje, explora y toma encomiendas, la entrega y califica | `POST /api/viajes`, `GET /api/viajes`, `GET /api/viajes/disponible`, `GET /api/vuelos/…`, `GET /api/encomiendas/disponibles`, `PUT …/tomar/{id}`, `PUT …/estado` (`entregada`), `POST /api/ratings` |
+    | Los dos | Perfil, chat, asistente | `/api/users/*`, `GET /api/chats/estado/{chatId}`, `POST /api/chatbot` |
+    | 🌐 Público | Sin token | `GET /api/ratings/{uid}`, `/api/ciudades/*` |
+
     **Errores:** siempre `{ "error": "…" }` (a veces con `detalle`). Los éxitos usan `message` en usuarios y `mensaje`
     en el resto.
 
@@ -110,11 +121,14 @@ paths:
         description: Firebase Auth (Google Identity Toolkit)
     post:
       tags: [Autenticación]
-      summary: ✅ Obtener el idToken (solo para pruebas en Postman/Swagger)
+      summary: ✅ Obtener el idToken (solo para pruebas en Postman/Swagger) — 🔓 Sin sesión
       description: |
+        **Quién la usa:** 🔓 Sin sesión. Cualquiera, antes de entrar.
+
         Devuelve el `idToken` que se pega en **Authorize** (arriba a la derecha). Dura 1 hora.
         La `key` es la API key web de Firebase (está en el environment de Postman). En la app se usa
         `signInWithEmailAndPassword()` y `getIdToken()` del SDK.
+      x-roles: [publico]
       operationId: obtenerIdToken
       security: []
       parameters:
@@ -155,8 +169,12 @@ paths:
   /api/users/register:
     post:
       tags: [Usuarios]
-      summary: ✅ Registrar o actualizar mi perfil
-      description: Crea el perfil del usuario del token o lo actualiza si ya existe. El `email` lo toma del token.
+      summary: ✅ Registrar o actualizar mi perfil — 📦 Remitente · ✈️ Viajero
+      description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, al crear su perfil (antes de elegir rol).
+
+        Crea el perfil del usuario del token o lo actualiza si ya existe. El `email` lo toma del token.
+      x-roles: [remitente, viajero]
       operationId: registrarUsuario
       requestBody:
         required: true
@@ -180,8 +198,12 @@ paths:
       - $ref: "#/components/parameters/Uid"
     get:
       tags: [Usuarios]
-      summary: ✅ Ver mi perfil
-      description: Solo funciona con el uid propio. Cualquier otro uid (exista o no) responde **403**.
+      summary: ✅ Ver mi perfil — 📦 Remitente · ✈️ Viajero
+      description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, su propio perfil.
+
+        Solo funciona con el uid propio. Cualquier otro uid (exista o no) responde **403**.
+      x-roles: [remitente, viajero]
       operationId: obtenerUsuario
       responses:
         "200":
@@ -216,10 +238,13 @@ paths:
               example: { error: No autorizado para consultar este usuario }
     put:
       tags: [Usuarios]
-      summary: ⚠️ Actualizar mi perfil (no guarda `rol`)
+      summary: ⚠️ Actualizar mi perfil (no guarda `rol`) — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, su propio perfil.
+
         Acepta campos parciales. **No guarda `rol`**: responde 200 pero lo descarta, por eso el rol vive en el
         dispositivo. Ver la propuesta `PUT /api/users/{uid}/rol`.
+      x-roles: [remitente, viajero]
       operationId: actualizarUsuario
       requestBody:
         required: true
@@ -248,11 +273,14 @@ paths:
   /api/viajes:
     post:
       tags: [Viajes]
-      summary: ✅ Registrar mi viaje
+      summary: ✅ Registrar mi viaje — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. El viajero registra el vuelo en el que ya va.
+
         El viajero registra su vuelo. Solo se permite **un viaje `disponible`** a la vez.
         `fechaViaje` se guarda como medianoche UTC: leerla como fecha de calendario, no como instante (en Colombia se
         vería un día antes).
+      x-roles: [viajero]
       operationId: crearViaje
       requestBody:
         required: true
@@ -276,7 +304,10 @@ paths:
         "401": { $ref: "#/components/responses/NoAutenticado" }
     get:
       tags: [Viajes]
-      summary: ✅ Listar mis viajes
+      summary: ✅ Listar mis viajes — ✈️ Viajero
+      description: |
+        **Quién la usa:** ✈️ Viajero. El viajero ve su historial de viajes.
+      x-roles: [viajero]
       operationId: listarMisViajes
       responses:
         "200":
@@ -290,7 +321,10 @@ paths:
   /api/viajes/disponible:
     get:
       tags: [Viajes]
-      summary: ✅ Mi viaje disponible
+      summary: ✅ Mi viaje disponible — ✈️ Viajero
+      description: |
+        **Quién la usa:** ✈️ Viajero. El viajero: define la ruta de Explorar.
+      x-roles: [viajero]
       operationId: miViajeDisponible
       responses:
         "200":
@@ -310,7 +344,10 @@ paths:
   /api/viajes/buscar:
     get:
       tags: [Viajes]
-      summary: ✅ Buscar viajeros por ciudad de origen
+      summary: ✅ Buscar viajeros por ciudad de origen — 📦 Remitente
+      description: |
+        **Quién la usa:** 📦 Remitente. El remitente busca quién viaja desde su ciudad.
+      x-roles: [remitente]
       operationId: buscarViajes
       parameters:
         - name: ciudad
@@ -331,10 +368,13 @@ paths:
   /api/vuelos/{numero}/{fecha}:
     get:
       tags: [Viajes]
-      summary: ⚠️ Verificar un vuelo (AeroDataBox) — hoy da 500
+      summary: ⚠️ Verificar un vuelo (AeroDataBox) — hoy da 500 — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. El viajero, al registrar el viaje.
+
         Existe, pero el servidor no tiene configurada `RAPIDAPI_KEY`. La app muestra "Sin verificar" y deja registrar
         el viaje igual. La forma de la respuesta exitosa **no se ha podido confirmar**.
+      x-roles: [viajero]
       operationId: verificarVuelo
       parameters:
         - { name: numero, in: path, required: true, schema: { type: string, example: AV10 } }
@@ -357,11 +397,14 @@ paths:
   /api/encomiendas:
     post:
       tags: [Encomiendas]
-      summary: ⚠️ Publicar una encomienda (no valida el body)
+      summary: ⚠️ Publicar una encomienda (no valida el body) — 📦 Remitente
       description: |
+        **Quién la usa:** 📦 Remitente. El remitente publica lo que quiere enviar.
+
         El remitente publica. **El backend no valida**: `{}` crea una encomienda vacía con 201, así que la app valida
         todo antes (ciudades de la lista, origen ≠ destino, valor entero > 0, descripción de 3 a 200 caracteres).
         `fechaVencimiento` se ignora: siempre vence un mes después de creada.
+      x-roles: [remitente]
       operationId: crearEncomienda
       requestBody:
         required: true
@@ -379,8 +422,12 @@ paths:
         "401": { $ref: "#/components/responses/NoAutenticado" }
     get:
       tags: [Encomiendas]
-      summary: ✅ Listar mis encomiendas (como remitente)
-      description: Solo las que yo publiqué. **No** incluye las que tomé como viajero (ver `GET /api/encomiendas/viajero`).
+      summary: ✅ Listar mis encomiendas — 📦 Remitente
+      description: |
+        **Quién la usa:** 📦 Remitente. El remitente ve lo que publicó. El viajero también la usa para no ofrecerse sus propias encomiendas.
+
+        Solo las que yo publiqué. **No** incluye las que tomé como viajero (ver `GET /api/encomiendas/viajero`).
+      x-roles: [remitente]
       operationId: listarMisEncomiendas
       responses:
         "200":
@@ -395,10 +442,13 @@ paths:
   /api/encomiendas/disponibles:
     get:
       tags: [Encomiendas]
-      summary: ⚠️ Encomiendas disponibles en una ruta (sin uid del remitente)
+      summary: ⚠️ Encomiendas disponibles en una ruta (sin uid del remitente) — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. El viajero explora encomiendas de su ruta.
+
         Trae `remitenteNombre` pero **no** el `uid` del remitente, e incluye las mías. La app la cruza con
         `GET /api/encomiendas` para no ofrecerle al viajero sus propias encomiendas.
+      x-roles: [viajero]
       operationId: listarDisponibles
       parameters:
         - { name: origen, in: query, required: true, schema: { type: string, example: Bogota } }
@@ -427,10 +477,13 @@ paths:
       - $ref: "#/components/parameters/EncomiendaId"
     put:
       tags: [Encomiendas]
-      summary: ⚠️ Tomar una encomienda (como viajero)
+      summary: ⚠️ Tomar una encomienda — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. El viajero se compromete a llevarla.
+
         Sin body: el viajero sale del token y queda en `viajeroId`. Responde solo un mensaje, sin la encomienda.
         **No valida roles**: el remitente puede tomar su propia encomienda.
+      x-roles: [viajero]
       operationId: tomarEncomienda
       responses:
         "200":
@@ -452,11 +505,14 @@ paths:
       - $ref: "#/components/parameters/EncomiendaId"
     put:
       tags: [Encomiendas]
-      summary: ⚠️ Cambiar el estado de una encomienda
+      summary: ⚠️ Cambiar el estado de una encomienda — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Remitente: `vencida` (retirar) y `recibida` (confirmar). Viajero: `entregada`. El backend no lo controla; la app solo muestra a cada rol su acción.
+
         Ciclo: `disponible → tomada → entregada → recibida`; `vencida` al mes o cuando el remitente la retira.
         **No existe `cancelada`** (aunque la colección de Postman la usa): da 400. Volver a `disponible` no limpia
         `viajeroId`. No valida qué rol hace cada cambio.
+      x-roles: [remitente, viajero]
       operationId: cambiarEstadoEncomienda
       requestBody:
         required: true
@@ -511,10 +567,13 @@ paths:
   /api/ratings:
     post:
       tags: [Calificaciones]
-      summary: ⚠️ Calificar a otro usuario
+      summary: ⚠️ Calificar a otro usuario — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, al terminar: el remitente califica al viajero y viceversa (`rolDestino`).
+
         `usuarioOrigen` sale del token. **Ignora `encomiendaId`** y no comprueba que la encomienda esté entregada.
         Body vacío o calificación fuera de 1-5 → **500** (no 400), por eso la app limita antes de enviar.
+      x-roles: [remitente, viajero]
       operationId: crearCalificacion
       requestBody:
         required: true
@@ -548,7 +607,10 @@ paths:
       - $ref: "#/components/parameters/Uid"
     get:
       tags: [Calificaciones]
-      summary: ✅ Calificaciones de un usuario (pública)
+      summary: ✅ Calificaciones de un usuario — 🌐 Público
+      description: |
+        **Quién la usa:** 🌐 Público. Cualquiera: reputación de la contraparte antes de confiar en ella.
+      x-roles: [publico]
       operationId: obtenerCalificaciones
       security: []
       responses:
@@ -567,12 +629,15 @@ paths:
   /api/chats/estado/{chatId}:
     get:
       tags: [Chats]
-      summary: ⚠️ Estado de un chat — hoy da 500
+      summary: ⚠️ Estado de un chat — hoy da 500 — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, antes de escribir.
+
         `chatId` = los dos uid **ordenados** y unidos con `_`, así el mismo par abre siempre el mismo chat.
         Debería decir si el chat se cerró (ambos calificaron tras la entrega). Hoy responde 500 siempre, y la app lo
         trata como **abierto**. Los mensajes van directo a Firestore: `chats/{chatId}/mensajes/{autoId}` con
         `{ texto, emisorUid, creadoEn }`.
+      x-roles: [remitente, viajero]
       operationId: estadoChat
       parameters:
         - name: chatId
@@ -600,8 +665,12 @@ paths:
   /api/ciudades/paises:
     get:
       tags: [Ciudades]
-      summary: ✅ Listar países
-      description: Arreglo plano en inglés, con algunos nombres mal codificados y duplicados.
+      summary: ✅ Listar países — 🌐 Público
+      description: |
+        **Quién la usa:** 🌐 Público. Formulario de perfil (nacionalidad).
+
+        Arreglo plano en inglés, con algunos nombres mal codificados y duplicados.
+      x-roles: [publico]
       operationId: listarPaises
       security: []
       responses:
@@ -615,8 +684,12 @@ paths:
   /api/ciudades/ciudades:
     get:
       tags: [Ciudades]
-      summary: ✅ Listar ciudades
-      description: ~1.800–2.000 ciudades de América, sin tildes. La app las guarda 7 días en el dispositivo.
+      summary: ✅ Listar ciudades — 🌐 Público
+      description: |
+        **Quién la usa:** 🌐 Público. Formularios de viaje y encomienda.
+
+        ~1.800–2.000 ciudades de América, sin tildes. La app las guarda 7 días en el dispositivo.
+      x-roles: [publico]
       operationId: listarCiudades
       security: []
       responses:
@@ -631,8 +704,12 @@ paths:
   /api/chatbot:
     post:
       tags: [Chatbot]
-      summary: ⚠️ Preguntar al asistente — hoy da 500
-      description: La clave de OpenRouter del servidor no es válida. La forma de la respuesta exitosa no está confirmada.
+      summary: ⚠️ Preguntar al asistente — hoy da 500 — 📦 Remitente · ✈️ Viajero
+      description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, desde el asistente.
+
+        La clave de OpenRouter del servidor no es válida. La forma de la respuesta exitosa no está confirmada.
+      x-roles: [remitente, viajero]
       operationId: preguntarChatbot
       requestBody:
         required: true
@@ -675,10 +752,13 @@ paths:
       - $ref: "#/components/parameters/Uid"
     put:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Guardar mi rol
+      summary: 🆕 Guardar mi rol — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, al elegir o cambiar de rol.
+
         **Por qué hace falta:** `PUT /api/users/{uid}` descarta `rol`, así que la app lo guarda en el dispositivo y al
         entrar desde otro celular hay que elegirlo otra vez. Alternativa equivalente: aceptar `rol` en el PUT actual.
+      x-roles: [remitente, viajero]
       operationId: guardarRol
       x-estado: propuesto
       requestBody:
@@ -710,11 +790,14 @@ paths:
       - $ref: "#/components/parameters/Uid"
     get:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Perfil público de otro usuario
+      summary: 🆕 Perfil público de otro usuario — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Remitente: ver al viajero que tomó su encomienda. Viajero: ver al remitente.
+
         **Por qué hace falta:** `GET /api/users/{uid}` da 403 para cualquier otro usuario, así que el remitente no puede
         ver el nombre del viajero que tomó su encomienda (en el chat aparece como "Chat") ni su reputación junto.
         Devolvería solo datos no sensibles: nada de teléfono ni correo.
+      x-roles: [remitente, viajero]
       operationId: perfilPublico
       x-estado: propuesto
       responses:
@@ -729,11 +812,14 @@ paths:
   /api/encomiendas/viajero:
     get:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Encomiendas que tomé (como viajero)
+      summary: 🆕 Encomiendas que tomé — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. El viajero: "Mis entregas" desde cualquier celular.
+
         **Por qué hace falta:** `GET /api/encomiendas` solo trae las que publiqué y `PUT /tomar/{id}` no devuelve la
         encomienda, así que la app guarda en el dispositivo cuáles tomó el viajero. Si cambia de celular, pierde
         "Mis entregas". Filtraría por `viajeroId` = uid del token.
+      x-roles: [viajero]
       operationId: listarTomadas
       x-estado: propuesto
       parameters:
@@ -754,10 +840,13 @@ paths:
       - $ref: "#/components/parameters/EncomiendaId"
     get:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Detalle de una encomienda
+      summary: 🆕 Detalle de una encomienda — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos; traería `uid` del remitente y `viajeroId`, lo que también permite al viajero abrir el chat primero.
+
         **Por qué hace falta:** no hay forma de pedir una sola encomienda; la app recarga listas completas y, para el
         viajero, mezcla lo guardado en el dispositivo con `/disponibles`. Solo la verían su remitente y su viajero.
+      x-roles: [remitente, viajero]
       operationId: obtenerEncomienda
       x-estado: propuesto
       responses:
@@ -770,11 +859,14 @@ paths:
         "404": { $ref: "#/components/responses/NoEncontrado" }
     delete:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Retirar una encomienda (cancelar)
+      summary: 🆕 Retirar una encomienda (cancelar) — 📦 Remitente
       description: |
+        **Quién la usa:** 📦 Remitente. Solo el remitente, mientras esté `disponible`.
+
         **Por qué hace falta:** no existe el estado `cancelada`, así que "retirar" deja la encomienda como `vencida` y
         en el historial no se distingue de una que caducó. Solo el remitente y solo si está `disponible`.
         Alternativa equivalente: agregar `cancelada` a los estados de `PUT /{id}/estado`.
+      x-roles: [remitente]
       operationId: retirarEncomienda
       x-estado: propuesto
       responses:
@@ -800,11 +892,14 @@ paths:
         schema: { type: string, example: 6ad95bc8f8b6da54469cfc4f }
     put:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Cerrar o cancelar mi viaje
+      summary: 🆕 Cerrar o cancelar mi viaje — ✈️ Viajero
       description: |
+        **Quién la usa:** ✈️ Viajero. Solo el viajero dueño del viaje.
+
         **Por qué hace falta:** el error de `POST /api/viajes` dice "Debes cerrarlo o cambiar su estado", pero no
         existe ningún endpoint para hacerlo. Si el viajero se equivoca de fecha o cancela el vuelo, queda bloqueado
         hasta que pase la fecha del viaje.
+      x-roles: [viajero]
       operationId: cambiarEstadoViaje
       x-estado: propuesto
       requestBody:
@@ -838,11 +933,14 @@ paths:
   /api/ratings/pendientes:
     get:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Encomiendas que me falta calificar
+      summary: 🆕 Encomiendas que me falta calificar — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos.
+
         **Por qué hace falta:** como `POST /api/ratings` ignora `encomiendaId`, el backend no sabe qué entrega se
         calificó; la app lo recuerda en el dispositivo para no pedir la calificación dos veces. Requiere guardar
         `encomiendaId` en cada calificación y aceptar solo encomiendas `entregada` o `recibida`.
+      x-roles: [remitente, viajero]
       operationId: calificacionesPendientes
       x-estado: propuesto
       responses:
@@ -869,10 +967,13 @@ paths:
       - $ref: "#/components/parameters/Uid"
     put:
       tags: [🆕 Faltan en el backend]
-      summary: 🆕 Registrar el token de notificaciones
+      summary: 🆕 Registrar el token de notificaciones — 📦 Remitente · ✈️ Viajero
       description: |
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos.
+
         **Por qué hace falta:** hoy nadie se entera de que su encomienda fue tomada, entregada o de un mensaje nuevo
         si no abre la app. Con el token de Firebase Cloud Messaging, el backend avisaría en cada cambio de estado.
+      x-roles: [remitente, viajero]
       operationId: guardarTokenPush
       x-estado: propuesto
       requestBody:
