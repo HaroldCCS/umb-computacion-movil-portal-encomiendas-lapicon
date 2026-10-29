@@ -42,13 +42,16 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
 | | `PUT /api/users/{uid}` | ✅ 200 · **ignora el campo `rol`** |
 | Viajes | `POST /api/viajes` | ✅ 201 · **400 si ya hay un viaje activo** |
 | | `GET /api/viajes` · `/disponible` · `/buscar?ciudad=` | ✅ (`/disponible` sin viaje → 404) |
-| Vuelos | `GET /api/vuelos/{numero}/{fecha}` | ⚠️ **500**: falta `RAPIDAPI_KEY` en el servidor |
+| | `PATCH /api/viajes/{id}/estado` *(Swagger oficial, 28-oct)* | ✅ `cancelado` o `completado`; después se puede registrar otro |
+| | `GET /api/viajes/disponibles?ciudadOrigen&ciudadDestino` *(28-oct)* | ✅ pública; viajeros de la ruta **con nombre** |
+| Vuelos | `GET /api/vuelos/{numero}/{fecha}` | ⚠️ **500**: falta `RAPIDAPI_KEY` en el servidor (se quitó de la interfaz) |
 | Encomiendas | `POST /api/encomiendas` | ✅ 201 · **no valida el body** |
 | | `GET /api/encomiendas` · `/disponibles?origen=&destino=` | ✅ (`/disponibles` trae `remitenteNombre`, no el uid) |
+| | `GET /api/encomiendas/buscar?origen&destino` *(28-oct)* | ✅ `{ disponibles, tomadas }` con `uid` y `remitenteNombre`; `tomadas` solo trae `tomada` |
 | | `PUT /api/encomiendas/tomar/{id}` | ✅ 200 `{ mensaje }` (sin la encomienda) |
 | | `PUT /api/encomiendas/{id}/estado` | ✅ estados: `disponible, tomada, vencida, entregada, recibida` |
 | Calificaciones | `POST /api/ratings` · `GET /api/ratings/{uid}` | ✅ · fuera de 1–5 da **500** (no 400) |
-| Chat | `GET /api/chats/estado/{chatId}` | ⚠️ **500** siempre (o 404 con ids inexistentes) |
+| Chat | `GET /api/chats/estado/{chatId}` | ⚠️ **500** el 22-oct · ✅ desde el 28-oct: `{ estado: activo \| cerrado, fechaCierre }`; se cierra al marcar `entregada` |
 | Catálogo | `GET /api/ciudades/paises` · `/ciudades` | ✅ listas de texto (~2.000 ciudades, sin tildes) |
 | Asistente | `POST /api/chatbot` | ⚠️ **500**: la clave de OpenRouter del servidor no es válida |
 
@@ -60,11 +63,12 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
 | `fechaVencimiento` se ignora (vence al mes) | No se pide la fecha; se muestra la automática |
 | El backend no guarda el `rol` | El rol vive en el dispositivo (`SharedPreferences` / `localStorage`) |
 | `POST /api/encomiendas` acepta cualquier cosa | La app valida todos los campos antes de enviar |
-| `/disponibles` no trae el uid del remitente | La app cruza con mis encomiendas para no ofrecer las propias |
+| `/disponibles` no trae el uid del remitente | La app cruza con mis encomiendas para no ofrecer las propias. Desde el Swagger oficial, `/buscar` sí lo trae (docs/11 §2B) |
 | Calificar no guarda la encomienda | La app recuerda localmente qué entregas ya calificó |
 | Render gratuito "se duerme" (~60 s) | Tiempo de espera de 75 s y aviso "Despertando el servidor…" |
 | Las fechas de viaje llegan como medianoche UTC | Se leen como día del calendario (si no, en Colombia se ven un día antes) |
-| Tres endpoints responden 500 | La app los llama y muestra un mensaje claro sin bloquear el flujo |
+| Dos endpoints responden 500 (vuelos y asistente) | Verificar vuelo se quitó de la interfaz; el asistente muestra un mensaje claro sin bloquear el flujo |
+| No había cómo cerrar un viaje (28-oct: ya existe `PATCH`) | La app agrega "Cancelar viaje" (docs/11 §2A) |
 
 ## 6. Evidencia
 
@@ -73,4 +77,5 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
 - Pruebas de contrato: `test/contrato_test.dart` (Flutter) y `src/datos/contrato.test.ts` (PWA).
 - Comprobación automática contra el servidor real: `npm run humo` en la PWA (13/13 endpoints responden como espera la
   app, 26-oct-2026).
+- Verificación del Swagger oficial (28-oct): `referencias/respuestas/fase0_*.json` y [docs/11](../11-plan-swagger-oficial.md).
 - Preguntas enviadas al profesor: [`docs/06-riesgos-y-preguntas.md`](../06-riesgos-y-preguntas.md).

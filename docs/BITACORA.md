@@ -259,3 +259,18 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
   entrada estándar para que no aparezca en la salida.
 - Marcar `entregada` dejó cerrado el chat del par de la demo → se tomó una tercera encomienda desechable (C) para
   reabrirlo.
+
+## 2026-10-28 — Paso 13: Fase 1, documentación al día con el Swagger oficial (docs/11)
+
+**Qué se hizo**
+- `docs/03`: nuevas rutas (`PATCH viajes/{id}/estado`, `viajes/disponibles`, `buscar`, `disponibles2`,
+  `mis-encomiendas`, `vencidas`, `emparejar-viajes`, `evaluar-emparejamiento`, `ciudades-por-pais`), el estado real del
+  chat, las rutas públicas, `fechaNacimiento`, `fotoUrl` y los estados de viaje.
+- `docs/api/openapi.yaml`: 36 operaciones (19 ✅, 10 ⚠️, 6 🆕, 1 📄). Se sacaron de 🆕 cerrar viaje y las encomiendas
+  tomadas. Redocly: 0 errores. Visor regenerado.
+- `docs/06`: respondidas P4, P6, P7, P8 y P10; preguntas nuevas P13–P20. Al día también `CLAUDE.md` y los entregables
+  00, 06 y 09.
+
+**Errores encontrados y cómo se resolvieron**
+- Desde que `chats/estado` responde 200, las dos apps **bloquean el chat al marcar `entregada`**: ya leían
+  `estado: "cerrado"`. No es un cambio de las apps sino del servidor; queda como pregunta P16 y se revisa en 2E.

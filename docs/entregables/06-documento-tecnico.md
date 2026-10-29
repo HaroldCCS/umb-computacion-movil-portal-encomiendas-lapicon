@@ -69,8 +69,9 @@ Después de la entrega, remitente y viajero se califican (1–5 estrellas y come
 ### 2.3 Supuestos y restricciones
 
 - El backend es **compartido** por todo el curso y está en un plan gratuito que "se duerme" (hasta ~60 s).
-- Tres endpoints fallan **en el servidor** (`/api/vuelos`, `/api/chats/estado`, `/api/chatbot` → 500); la app los
-  maneja sin bloquear el flujo.
+- Dos endpoints fallan **en el servidor** (`/api/vuelos` y `/api/chatbot` → 500). La verificación del vuelo se quitó
+  de la interfaz y el asistente muestra el error sin bloquear el flujo. `/api/chats/estado` daba 500 hasta el
+  22-oct; desde el 28-oct responde (docs/03).
 - El CORS del backend solo permite `localhost:5500`; la PWA publicada usa un **proxy propio** en Cloudflare.
 
 ---
@@ -109,12 +110,12 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | D6–D7 | Tomar una encomienda y ver las que tomé | M | ✅ (las tomadas se recuerdan en el dispositivo) |
 | **RF-E** | **Chat** | | |
 | E1–E2 | Chat por encomienda en tiempo real sobre Firestore (id `uidA_uidB` ordenado) | M | ✅ |
-| E3 | Consultar el estado y bloquear el envío si está cerrado | M | ✅ (hoy el endpoint da 500 → abierto) |
+| E3 | Consultar el estado y bloquear el envío si está cerrado | M | ✅ el endpoint responde desde el 28-oct; el chat se cierra al marcar `entregada` |
 | E4–E5 | Lista de conversaciones; hora y "Enviando…" | D/O | ✅ (sin contador de no leídos) |
 | **RF-F** | **Entrega y calificación** | | |
 | F1 | Marcar entregada | M | ✅ escribiendo ENTREGAR |
 | F2–F3 | Calificar (1–5 + comentario) y ver calificaciones recibidas | M | ✅ |
-| F4 | Chat cerrado tras calificar | M | 🟡 la app lo refleja; depende del endpoint que hoy da 500 |
+| F4 | Chat cerrado tras calificar | M | 🟡 la app lo refleja; el backend lo cierra antes, al marcar `entregada` (pregunta P16 al profesor) |
 | **RF-G** | **Extras** | | |
 | G1 | Asistente con IA | D | ✅ (error con "Reintentar" mientras el servidor falle) |
 | G2 | Caché local de ciudades y países (7 días) | D | ✅ |
@@ -210,7 +211,7 @@ Login ─► Firebase Auth ─► idToken ─► GET /api/users/{uid} (Bearer)
 
 ```text
 chatId = [uidA, uidB].sort().join('_')
-Enviar:  GET /api/chats/estado/{chatId}  → cerrado: bloquear │ abierto, 404 o 500: seguir
+Enviar:  GET /api/chats/estado/{chatId}  → cerrado: bloquear │ activo, 404 o 500: seguir
          lote atómico ─► chats/{chatId}        (participantes, nombres, ruta, último mensaje, actualizadoEn)
                      └► chats/{chatId}/mensajes/{auto}  (texto, emisorUid, creadoEn, creadoLocal)
 Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el servidor confirma.
@@ -269,7 +270,9 @@ Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el ser
 
 ## 7. Limitaciones conocidas
 
-- Fallas del servidor: `/api/vuelos`, `/api/chats/estado` y `/api/chatbot` (500).
-- El backend no guarda el rol ni qué encomiendas tomé o califiqué: se recuerda **por dispositivo**.
+- Fallas del servidor: `/api/vuelos` y `/api/chatbot` (500).
+- El backend no guarda el rol ni qué encomiendas califiqué, y solo lista las que tomé mientras siguen `tomada`: eso se
+  recuerda **por dispositivo**.
+- No hay cancelar encomienda: "retirar" la deja `vencida` (pedido al profesor).
 - Las reglas de Firestore permiten listar chats a cualquier usuario autenticado (reportado).
 - Pendiente: prueba en un celular físico con las dos cuentas y chat Flutter ↔ PWA en vivo.

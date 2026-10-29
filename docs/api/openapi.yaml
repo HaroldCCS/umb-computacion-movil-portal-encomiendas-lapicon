@@ -1,11 +1,15 @@
 openapi: 3.1.0
 info:
   title: Lapticon API
-  version: "2026-10-26"
+  version: "2026-10-28"
   description: |
     Contrato del backend compartido del curso (Node/Express + MongoDB en Render), reconstruido a partir de la colección
-    de Postman del profesor y **verificado con peticiones reales** el 22-oct-2026 con dos cuentas propias (remitente y
-    viajero). Las respuestas de ejemplo son reales (teléfono y correo ocultos) y están en `referencias/respuestas/`.
+    de Postman y del **Swagger oficial del profesor** (`/api-docs`, copia en `referencias/swagger-oficial.json`), y
+    **verificado con peticiones reales** el 22-oct y el 28-oct-2026 con dos cuentas propias (remitente y viajero). Las
+    respuestas de ejemplo son reales (teléfono y correo ocultos) y están en `referencias/respuestas/`.
+
+    **Servidor:** el oficial declara `lapticon-backend-ed.onrender.com`, que no existe (404 en todo). Todas sus rutas
+    responden en `lapticon-backend.onrender.com`, que es el que se usa aquí.
 
     **Cómo leer este documento**
 
@@ -16,19 +20,21 @@ info:
     | 🆕 | **No existe**: la app lo necesita y hoy lo resuelve en el dispositivo. Es una propuesta para el backend |
 
     **Autenticación:** iniciar sesión con Firebase Auth (proyecto `lapticon-eba31`) y enviar el `idToken` en
-    `Authorization: Bearer <idToken>`. Son públicas solo `GET /api/ratings/{uid}` y `/api/ciudades/*`.
+    `Authorization: Bearer <idToken>`. Son públicas solo `GET /api/ratings/{uid}`, `/api/ciudades/*`,
+    `GET /api/viajes/disponibles`, `GET /api/vuelos/…` y `POST /api/encomiendas/actualizar-vencidas`.
     El backend toma el usuario del token (`req.user.uid`): **nunca** se manda el uid propio en el body.
 
-    **Roles:** el backend **no tiene roles** (no guarda `rol` ni comprueba quién hace cada acción); el rol lo decide la
-    app. Cada operación dice en el título quién la usa (📦 Remitente · ✈️ Viajero · 🌐 Público) y lo repite en
+    **Roles:** el backend **no tiene roles**: no guarda `rol`. Sí comprueba que quien cambia una encomienda sea su
+    remitente o su viajero asignado (403), y que quien cambia un viaje sea su dueño (404), pero no qué cambio hace cada
+    uno. El rol lo decide la app. Cada operación dice en el título quién la usa (📦 Remitente · ✈️ Viajero · 🌐 Público) y lo repite en
     `x-roles`.
 
     | Rol | Qué hace | Endpoints |
     |---|---|---|
-    | 📦 Remitente | Publica encomiendas, busca viajeros, retira, confirma que la recibió y califica | `POST /api/encomiendas`, `GET /api/encomiendas`, `GET /api/viajes/buscar`, `PUT …/estado` (`vencida`, `recibida`), `POST /api/ratings` |
-    | ✈️ Viajero | Registra su viaje, explora y toma encomiendas, la entrega y califica | `POST /api/viajes`, `GET /api/viajes`, `GET /api/viajes/disponible`, `GET /api/vuelos/…`, `GET /api/encomiendas/disponibles`, `PUT …/tomar/{id}`, `PUT …/estado` (`entregada`), `POST /api/ratings` |
+    | 📦 Remitente | Publica encomiendas, busca viajeros, retira, confirma que la recibió y califica | `POST /api/encomiendas`, `GET /api/encomiendas`, `GET /api/encomiendas/mis-encomiendas`, `GET /api/viajes/buscar`, `GET /api/viajes/disponibles`, `POST /api/encomiendas/emparejar-viajes`, `PUT …/estado` (`vencida`, `recibida`), `POST /api/ratings` |
+    | ✈️ Viajero | Registra su viaje, explora y toma encomiendas, la entrega y califica | `POST /api/viajes`, `GET /api/viajes`, `GET /api/viajes/disponible`, `PATCH /api/viajes/{id}/estado`, `GET /api/vuelos/…`, `GET /api/encomiendas/buscar`, `GET /api/encomiendas/disponibles`, `GET /api/encomiendas/disponibles2`, `PUT …/tomar/{id}`, `PUT …/estado` (`entregada`), `POST /api/ratings` |
     | Los dos | Perfil, chat, asistente | `/api/users/*`, `GET /api/chats/estado/{chatId}`, `POST /api/chatbot` |
-    | 🌐 Público | Sin token | `GET /api/ratings/{uid}`, `/api/ciudades/*` |
+    | 🌐 Público | Sin token | `GET /api/ratings/{uid}`, `/api/ciudades/*`, `GET /api/viajes/disponibles`, `GET /api/vuelos/…` |
 
     **Errores:** siempre `{ "error": "…" }` (a veces con `detalle`). Los éxitos usan `message` en usuarios y `mensaje`
     en el resto.
@@ -59,6 +65,33 @@ x-ejemplos:
     estado: disponible
     createdAt: "2026-10-22T00:41:44.670Z"
     __v: 0
+  ViajeLA2401: &viajeCompletado
+    _id: 6ae29800411da1034525b3de
+    uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+    numeroVuelo: LA2401
+    ciudadOrigen: Cali
+    ciudadDestino: Lima
+    fechaViaje: "2026-12-10T00:00:00.000Z"
+    estado: completado
+    createdAt: "2026-10-29T00:49:04.238Z"
+    __v: 0
+  EncomiendaTomada: &encomiendaTomada
+    _id: 6ae296ed411da1034525b384
+    uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
+    ciudadOrigen: Cali
+    ciudadDestino: Lima
+    observaciones: Prueba Fase 0 (desechable) A
+    moneda: USD
+    valor: 1
+    estado: tomada
+    viajeroId: IeMGfjHQ7XTc0W08QrTzx1flvo13
+    fechaCreacion: "2026-10-29T00:44:29.598Z"
+    fechaVencimiento: "2026-11-29T00:44:29.598Z"
+    fechaDisponibleDesde: "2026-10-29T00:44:29.598Z"
+    fechaLimiteEntrega: null
+    fotoUrl: null
+    __v: 0
+    remitenteNombre: Harold
   EncomiendaDisponible: &encomienda
     _id: 6ada5d86a4012aeb7e63d853
     uid: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03
@@ -93,13 +126,13 @@ tags:
   - name: Usuarios
     description: Perfil del usuario autenticado.
   - name: Viajes
-    description: El viajero registra su vuelo; solo puede tener un viaje `disponible` a la vez.
+    description: El viajero registra su vuelo; solo puede tener un viaje `disponible` a la vez y puede cancelarlo o cerrarlo.
   - name: Encomiendas
     description: El remitente publica; el viajero toma, entrega y el remitente confirma.
   - name: Calificaciones
     description: Remitente y viajero se califican de 1 a 5.
   - name: Chats
-    description: Los mensajes van directo a Firestore; el backend solo informa si el chat está cerrado.
+    description: Los mensajes van directo a Firestore; el backend abre el chat del par al tomar y lo cierra al entregar.
   - name: Ciudades
     description: Listas públicas para autocompletar. Enviar los nombres exactamente como vienen (`Bogota`, sin tilde).
   - name: Chatbot
@@ -108,7 +141,8 @@ tags:
     description: |
       Endpoints que la app necesita y el backend no tiene. Hoy la app los suple guardando datos **por dispositivo**
       (`SharedPreferences` / `localStorage`) o cruzando listas, así que se pierden al cambiar de celular.
-      Es una propuesta: cuerpos y respuestas siguen el estilo del backend actual.
+      Es una propuesta: cuerpos y respuestas siguen el estilo del backend actual. Desde el Swagger oficial (28-oct)
+      ya existen cerrar viaje (`PATCH /api/viajes/{id}/estado`) y las encomiendas tomadas (`GET /api/encomiendas/buscar`).
 
 security:
   - bearerAuth: []
@@ -262,6 +296,11 @@ paths:
                 message: Usuario actualizado correctamente
                 user: *usuario
         "401": { $ref: "#/components/responses/NoAutenticado" }
+        "400":
+          description: Se intentó cambiar `uid` o `email` (según el oficial; las apps no los mandan).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
         "403":
           description: El uid no es el mío.
           content:
@@ -365,17 +404,109 @@ paths:
                 - *viaje
         "401": { $ref: "#/components/responses/NoAutenticado" }
 
+  /api/viajes/disponibles:
+    get:
+      tags: [Viajes]
+      summary: ✅ Viajeros con viaje disponible en una ruta (con nombre) — 🌐 Público
+      description: |
+        **Quién la usa:** 📦 Remitente (sin token). El remitente busca quién viaja por su ruta completa y ve su nombre.
+
+        Pública. A diferencia de `/api/viajes/buscar`, filtra por origen **y** destino y trae `nombreUsuario`. Solo
+        aparecen viajes `disponible`: cuando el viaje se cierra, el nombre ya no se puede consultar.
+      x-roles: [publico, remitente]
+      operationId: viajerosDisponiblesEnRuta
+      security: []
+      parameters:
+        - { name: ciudadOrigen, in: query, required: true, schema: { type: string, example: Bogota } }
+        - { name: ciudadDestino, in: query, required: true, schema: { type: string, example: Miami } }
+      responses:
+        "200":
+          description: Viajeros de la ruta.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    ciudadOrigen: { type: string }
+                    ciudadDestino: { type: string }
+                    fechaViaje: { type: string, format: date-time }
+                    nombreUsuario: { type: string }
+                    uid: { type: string, description: uid del viajero }
+              example:
+                - { ciudadOrigen: Bogota, ciudadDestino: Miami, fechaViaje: "2026-12-01T00:00:00.000Z", nombreUsuario: Harold Viajero, uid: IeMGfjHQ7XTc0W08QrTzx1flvo13 }
+
+  /api/viajes/{id}/estado:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, example: 6ae29800411da1034525b3de }
+    patch:
+      tags: [Viajes]
+      summary: ✅ Cancelar o cerrar mi viaje — ✈️ Viajero
+      description: |
+        **Quién la usa:** ✈️ Viajero. Solo el dueño del viaje.
+
+        Es **`PATCH`** (no PUT). Después de `cancelado` o `completado`, `GET /api/viajes/disponible` da 404 y se puede
+        registrar otro viaje. El oficial lista también `contactado`, pero aquí da 400.
+
+        ⚠️ El servidor deja volver un viaje cancelado a `disponible` (la app no lo ofrece) y no revisa si tiene
+        encomiendas tomadas sin entregar: la app avisa antes de cancelar.
+      x-roles: [viajero]
+      operationId: cambiarEstadoViaje
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado: { type: string, enum: [disponible, completado, cancelado] }
+            examples:
+              cancelar: { summary: El viajero cancela, value: { estado: cancelado } }
+              cerrar: { summary: El viajero lo cierra, value: { estado: completado } }
+      responses:
+        "200":
+          description: Estado actualizado. Ojo, usa `message`, no `mensaje`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  viaje: { $ref: "#/components/schemas/Viaje" }
+              example:
+                message: Estado actualizado
+                viaje: *viajeCompletado
+        "400":
+          description: Estado inválido (también `contactado`).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Estado inválido }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "404":
+          description: No existe o no es mío.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Viaje no encontrado o no autorizado }
+
   /api/vuelos/{numero}/{fecha}:
     get:
       tags: [Viajes]
-      summary: ⚠️ Verificar un vuelo (AeroDataBox) — hoy da 500 — ✈️ Viajero
+      summary: ⚠️ Verificar un vuelo (AeroDataBox) — hoy da 500 — 🌐 Público
       description: |
-        **Quién la usa:** ✈️ Viajero. El viajero, al registrar el viaje.
+        **Quién la usa:** nadie en la interfaz (docs/11 §2H). Queda en el repositorio de las apps por si vuelve a funcionar.
 
-        Existe, pero el servidor no tiene configurada `RAPIDAPI_KEY`. La app muestra "Sin verificar" y deja registrar
-        el viaje igual. La forma de la respuesta exitosa **no se ha podido confirmar**.
-      x-roles: [viajero]
+        Pública (no pide token). Existe, pero el servidor no tiene configurada `RAPIDAPI_KEY`, así que las apps **no
+        muestran** la verificación. La forma de la respuesta exitosa **no se ha podido confirmar**.
+      x-roles: [publico]
       operationId: verificarVuelo
+      security: []
       parameters:
         - { name: numero, in: path, required: true, schema: { type: string, example: AV10 } }
         - { name: fecha, in: path, required: true, schema: { type: string, format: date, example: "2026-12-01" } }
@@ -385,7 +516,6 @@ paths:
           content:
             application/json:
               schema: { type: object, additionalProperties: true }
-        "401": { $ref: "#/components/responses/NoAutenticado" }
         "500":
           description: Falta la clave en el servidor.
           content:
@@ -426,7 +556,8 @@ paths:
       description: |
         **Quién la usa:** 📦 Remitente. El remitente ve lo que publicó. El viajero también la usa para no ofrecerse sus propias encomiendas.
 
-        Solo las que yo publiqué. **No** incluye las que tomé como viajero (ver `GET /api/encomiendas/viajero`).
+        Solo las que yo publiqué, en cualquier estado. **No** incluye las que tomé como viajero (ver
+        `GET /api/encomiendas/buscar`). No trae el nombre del viajero.
       x-roles: [remitente]
       operationId: listarMisEncomiendas
       responses:
@@ -472,6 +603,179 @@ paths:
                   fechaVencimiento: "2026-11-22T00:42:08.556Z"
         "401": { $ref: "#/components/responses/NoAutenticado" }
 
+  /api/encomiendas/buscar:
+    get:
+      tags: [Encomiendas]
+      summary: ✅ Disponibles y tomadas por mí en una ruta — ✈️ Viajero
+      description: |
+        **Quién la usa:** ✈️ Viajero. Explorar y "Mis entregas".
+
+        Cada encomienda trae el `uid` del remitente **y** `remitenteNombre`: el viajero puede abrir el chat y calificar
+        sin esperar a que el remitente escriba.
+
+        - `disponibles` **incluye las propias**: la app las quita comparando `uid`.
+        - `tomadas` son las que tomé en esa ruta, **solo en estado `tomada`**: al pasar a `entregada` o `recibida`
+          desaparecen de las dos listas, por eso la app guarda también las entregas en el dispositivo.
+      x-roles: [viajero]
+      operationId: buscarEncomiendas
+      parameters:
+        - { name: origen, in: query, required: true, schema: { type: string, example: Cali } }
+        - { name: destino, in: query, required: true, schema: { type: string, example: Lima } }
+      responses:
+        "200":
+          description: Las dos listas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  disponibles: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+                  tomadas: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+              example:
+                disponibles: []
+                tomadas:
+                  - *encomiendaTomada
+        "400":
+          description: Falta el origen o el destino.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Origen y destino son requeridos }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/disponibles2:
+    get:
+      tags: [Encomiendas]
+      summary: ✅ Disponibles sin las propias (con uid, sin nombre) — ✈️ Viajero
+      description: |
+        **Quién la usa:** ✈️ Viajero. Alternativa a `/disponibles`.
+
+        Filtros opcionales. Trae el `uid` del remitente, **excluye las propias** y no trae `remitenteNombre`.
+      x-roles: [viajero]
+      operationId: listarDisponibles2
+      parameters:
+        - { name: ciudadOrigen, in: query, required: false, schema: { type: string, example: Bogota } }
+        - { name: ciudadDestino, in: query, required: false, schema: { type: string, example: Miami } }
+      responses:
+        "200":
+          description: Disponibles de otros remitentes.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/mis-encomiendas:
+    get:
+      tags: [Encomiendas]
+      summary: ✅ Mis encomiendas aún disponibles — 📦 Remitente
+      description: |
+        **Quién la usa:** 📦 Remitente. Solo las mías en estado `disponible` (las apps usan `GET /api/encomiendas`, que trae todas).
+      x-roles: [remitente]
+      operationId: misEncomiendasDisponibles
+      responses:
+        "200":
+          description: Envuelto en `disponibles`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  disponibles: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+              example: { disponibles: [] }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/vencidas:
+    get:
+      tags: [Encomiendas]
+      summary: ⚠️ Encomiendas vencidas (de todos los usuarios) — 📦 Remitente
+      description: |
+        **Quién la usa:** nadie en las apps.
+
+        Devuelve las vencidas **de todos los usuarios**, con `remitenteNombre`. No sirve para "mis vencidas"
+        (pregunta al profesor en docs/06).
+      x-roles: [remitente]
+      operationId: listarVencidas
+      responses:
+        "200":
+          description: Vencidas de todos.
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/actualizar-vencidas:
+    post:
+      tags: [Encomiendas]
+      summary: 📄 Marcar como vencidas las que pasaron su fecha — tarea programada
+      description: |
+        **Quién la usa:** una tarea programada del servidor; las apps no la llaman. Pública según el oficial (sin probar,
+        porque modifica datos de todos).
+      x-roles: [publico]
+      operationId: actualizarVencidas
+      security: []
+      responses:
+        "200": { description: Actualizadas. }
+
+  /api/encomiendas/emparejar-viajes:
+    post:
+      tags: [Encomiendas]
+      summary: ✅ Viajes sugeridos para una encomienda (IA) — 📦 Remitente
+      description: |
+        **Quién la usa:** 📦 Remitente, al publicar (paso 2F de docs/11, opcional).
+
+        Devuelve viajes con `afinidad` entre 0 y 1. El 28-oct, el primer intento no respondió en 120 s y el segundo
+        tardó 0,5 s: usarla con tiempo de espera y sin bloquear la publicación.
+      x-roles: [remitente]
+      operationId: emparejarViajes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ciudadOrigen: { type: string }
+                ciudadDestino: { type: string }
+                fechaEncomienda: { type: string, format: date }
+                valorEncomienda: { type: number }
+            example: { ciudadOrigen: Bogota, ciudadDestino: Miami, fechaEncomienda: "2026-11-30", valorEncomienda: 20 }
+      responses:
+        "200":
+          description: Viajes sugeridos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    viajeId: { type: string }
+                    uid: { type: string, description: uid del viajero }
+                    afinidad: { type: number, minimum: 0, maximum: 1 }
+                    ciudadOrigen: { type: string }
+                    ciudadDestino: { type: string }
+                    fechaViaje: { type: string, format: date-time }
+              example:
+                - { viajeId: 6ada5e75a4012aeb7e63d873, uid: IeMGfjHQ7XTc0W08QrTzx1flvo13, afinidad: 0.868, ciudadOrigen: Bogota, ciudadDestino: Miami, fechaViaje: "2026-12-01T00:00:00.000Z" }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+
+  /api/encomiendas/evaluar-emparejamiento:
+    post:
+      tags: [Encomiendas]
+      summary: ⚠️ Evaluar un emparejamiento — hoy da 500 — 📦 Remitente
+      description: |
+        **Quién la usa:** nadie en las apps. Necesita `MATCHING_API_URL` en el servidor.
+      x-roles: [remitente]
+      operationId: evaluarEmparejamiento
+      responses:
+        "200": { description: Evaluación (forma sin confirmar). }
+        "401": { $ref: "#/components/responses/NoAutenticado" }
+        "500":
+          description: Falta el motor de emparejamiento.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Error al consultar motor de emparejamiento }
+
   /api/encomiendas/tomar/{id}:
     parameters:
       - $ref: "#/components/parameters/EncomiendaId"
@@ -482,7 +786,8 @@ paths:
         **Quién la usa:** ✈️ Viajero. El viajero se compromete a llevarla.
 
         Sin body: el viajero sale del token y queda en `viajeroId`. Responde solo un mensaje, sin la encomienda.
-        **No valida roles**: el remitente puede tomar su propia encomienda.
+        **No valida roles**: el remitente puede tomar su propia encomienda. Tampoco exige que la ruta coincida con el
+        viaje del viajero. Al tomarla, el chat del par queda `activo`.
       x-roles: [viajero]
       operationId: tomarEncomienda
       responses:
@@ -510,8 +815,10 @@ paths:
         **Quién la usa:** 📦 Remitente · ✈️ Viajero. Remitente: `vencida` (retirar) y `recibida` (confirmar). Viajero: `entregada`. El backend no lo controla; la app solo muestra a cada rol su acción.
 
         Ciclo: `disponible → tomada → entregada → recibida`; `vencida` al mes o cuando el remitente la retira.
-        **No existe `cancelada`** (aunque la colección de Postman la usa): da 400. Volver a `disponible` no limpia
-        `viajeroId`. No valida qué rol hace cada cambio.
+        **No existe `cancelada`** (aunque la colección de Postman la usa): da 400. El oficial no lista `entregada`,
+        pero el servidor la acepta. Volver a `disponible` no limpia `viajeroId`. Solo pueden cambiarla su remitente o
+        su viajero asignado (403 a terceros), pero no valida cuál de los dos hace cada cambio. Con `entregada`, el
+        chat del par pasa a `cerrado`.
       x-roles: [remitente, viajero]
       operationId: cambiarEstadoEncomienda
       requestBody:
@@ -629,14 +936,15 @@ paths:
   /api/chats/estado/{chatId}:
     get:
       tags: [Chats]
-      summary: ⚠️ Estado de un chat — hoy da 500 — 📦 Remitente · ✈️ Viajero
+      summary: ✅ Estado de un chat — 📦 Remitente · ✈️ Viajero
       description: |
         **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos, antes de escribir.
 
-        `chatId` = los dos uid **ordenados** y unidos con `_`, así el mismo par abre siempre el mismo chat.
-        Debería decir si el chat se cerró (ambos calificaron tras la entrega). Hoy responde 500 siempre, y la app lo
-        trata como **abierto**. Los mensajes van directo a Firestore: `chats/{chatId}/mensajes/{autoId}` con
-        `{ texto, emisorUid, creadoEn }`.
+        `chatId` = los dos uid **ordenados** y unidos con `_`, así el mismo par abre siempre el mismo chat (en otro
+        orden da 404). El documento lo crea el backend: al **tomar** una encomienda queda `activo`; al marcarla
+        **`entregada`** pasa a `cerrado` con `fechaCierre`; tomar otra del mismo par lo vuelve a abrir. La app trata
+        `cerrado` como bloqueado y `activo`, 404 o 500 como abierto. Los mensajes van directo a Firestore:
+        `chats/{chatId}/mensajes/{autoId}` con `{ texto, emisorUid, creadoEn }`. (Hasta el 22-oct respondía 500.)
       x-roles: [remitente, viajero]
       operationId: estadoChat
       parameters:
@@ -646,16 +954,27 @@ paths:
           schema: { type: string, example: Cpmc8Mv0CkTD0aJJMtiOBEzDNV03_IeMGfjHQ7XTc0W08QrTzx1flvo13 }
       responses:
         "200":
-          description: Forma esperada (sin confirmar).
+          description: Estado del chat del par.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  estado: { type: string, enum: [abierto, cerrado] }
+                  estado: { type: string, enum: [activo, cerrado] }
+                  fechaCierre: { type: [string, "null"], format: date-time }
+              examples:
+                activo: { summary: Tras tomar una encomienda, value: { estado: activo, fechaCierre: null } }
+                cerrado: { summary: Tras marcarla entregada, value: { estado: cerrado, fechaCierre: "2026-10-29T00:46:00.283Z" } }
         "401": { $ref: "#/components/responses/NoAutenticado" }
+        "403": { $ref: "#/components/responses/NoAutorizado" }
+        "404":
+          description: El par nunca tuvo una encomienda tomada, o el id está en otro orden.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example: { error: Chat no encontrado }
         "500":
-          description: Falla del servidor.
+          description: Falla del servidor (así respondía el 22-oct).
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
@@ -699,6 +1018,28 @@ paths:
             application/json:
               schema: { type: array, items: { type: string } }
               example: [Bogota, Medellin, Miami, Madrid]
+
+  /api/ciudades/ciudades-por-pais:
+    get:
+      tags: [Ciudades]
+      summary: ✅ Ciudades de un país (con tildes) — 🌐 Público
+      description: |
+        **Quién la usa:** nadie todavía. Serviría para sugerir ciudades según la nacionalidad.
+
+        Los nombres vienen **con tildes** (`Bogotá`), distintos de `/api/ciudades/ciudades` (`Bogota`). No mezclarla con
+        los formularios: los filtros del backend comparan el texto exacto.
+      x-roles: [publico]
+      operationId: ciudadesPorPais
+      security: []
+      parameters:
+        - { name: nombre, in: query, required: true, schema: { type: string, example: Colombia } }
+      responses:
+        "200":
+          description: Ciudades del país.
+          content:
+            application/json:
+              schema: { type: array, items: { type: string } }
+              example: [Medellin, Cali, Bogotá, Bucaramanga]
 
   # ───────────────────────────── Chatbot ─────────────────────────────
   /api/chatbot:
@@ -794,8 +1135,9 @@ paths:
       description: |
         **Quién la usa:** 📦 Remitente · ✈️ Viajero. Remitente: ver al viajero que tomó su encomienda. Viajero: ver al remitente.
 
-        **Por qué hace falta:** `GET /api/users/{uid}` da 403 para cualquier otro usuario, así que el remitente no puede
-        ver el nombre del viajero que tomó su encomienda (en el chat aparece como "Chat") ni su reputación junto.
+        **Por qué hace falta:** `GET /api/users/{uid}` da 403 para cualquier otro usuario. `GET /api/viajes/disponibles`
+        da el nombre del viajero, pero solo mientras su viaje esté `disponible`; después, el remitente ya no puede ver
+        quién llevó su encomienda.
         Devolvería solo datos no sensibles: nada de teléfono ni correo.
       x-roles: [remitente, viajero]
       operationId: perfilPublico
@@ -809,32 +1151,6 @@ paths:
               example: { uid: IeMGfjHQ7XTc0W08QrTzx1flvo13, nombre: Harold, apellido: C., rol: viajero, promedio: 5, totalCalificaciones: 1 }
         "404": { $ref: "#/components/responses/NoEncontrado" }
 
-  /api/encomiendas/viajero:
-    get:
-      tags: [🆕 Faltan en el backend]
-      summary: 🆕 Encomiendas que tomé — ✈️ Viajero
-      description: |
-        **Quién la usa:** ✈️ Viajero. El viajero: "Mis entregas" desde cualquier celular.
-
-        **Por qué hace falta:** `GET /api/encomiendas` solo trae las que publiqué y `PUT /tomar/{id}` no devuelve la
-        encomienda, así que la app guarda en el dispositivo cuáles tomó el viajero. Si cambia de celular, pierde
-        "Mis entregas". Filtraría por `viajeroId` = uid del token.
-      x-roles: [viajero]
-      operationId: listarTomadas
-      x-estado: propuesto
-      parameters:
-        - name: estado
-          in: query
-          required: false
-          schema: { $ref: "#/components/schemas/EstadoEncomienda" }
-      responses:
-        "200":
-          description: Encomiendas con `viajeroId` = yo.
-          content:
-            application/json:
-              schema: { type: array, items: { $ref: "#/components/schemas/Encomienda" } }
-        "401": { $ref: "#/components/responses/NoAutenticado" }
-
   /api/encomiendas/{id}:
     parameters:
       - $ref: "#/components/parameters/EncomiendaId"
@@ -842,10 +1158,10 @@ paths:
       tags: [🆕 Faltan en el backend]
       summary: 🆕 Detalle de una encomienda — 📦 Remitente · ✈️ Viajero
       description: |
-        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos; traería `uid` del remitente y `viajeroId`, lo que también permite al viajero abrir el chat primero.
+        **Quién la usa:** 📦 Remitente · ✈️ Viajero. Los dos.
 
         **Por qué hace falta:** no hay forma de pedir una sola encomienda; la app recarga listas completas y, para el
-        viajero, mezcla lo guardado en el dispositivo con `/disponibles`. Solo la verían su remitente y su viajero.
+        viajero, mezcla lo guardado en el dispositivo con `/buscar` (que deja de traerla al entregarla). Solo la verían su remitente y su viajero.
       x-roles: [remitente, viajero]
       operationId: obtenerEncomienda
       x-estado: propuesto
@@ -882,52 +1198,6 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
               example: { error: Solo se puede retirar una encomienda disponible }
-        "403": { $ref: "#/components/responses/NoAutorizado" }
-
-  /api/viajes/{id}/estado:
-    parameters:
-      - name: id
-        in: path
-        required: true
-        schema: { type: string, example: 6ad95bc8f8b6da54469cfc4f }
-    put:
-      tags: [🆕 Faltan en el backend]
-      summary: 🆕 Cerrar o cancelar mi viaje — ✈️ Viajero
-      description: |
-        **Quién la usa:** ✈️ Viajero. Solo el viajero dueño del viaje.
-
-        **Por qué hace falta:** el error de `POST /api/viajes` dice "Debes cerrarlo o cambiar su estado", pero no
-        existe ningún endpoint para hacerlo. Si el viajero se equivoca de fecha o cancela el vuelo, queda bloqueado
-        hasta que pase la fecha del viaje.
-      x-roles: [viajero]
-      operationId: cambiarEstadoViaje
-      x-estado: propuesto
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [estado]
-              properties:
-                estado: { type: string, enum: [completado, cancelado] }
-            example: { estado: cancelado }
-      responses:
-        "200":
-          description: Estado actualizado.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mensaje: { type: string }
-                  viaje: { $ref: "#/components/schemas/Viaje" }
-        "400":
-          description: Tiene encomiendas tomadas sin entregar.
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/Error" }
-              example: { error: No puedes cancelar un viaje con encomiendas por entregar }
         "403": { $ref: "#/components/responses/NoAutorizado" }
 
   /api/ratings/pendientes:
@@ -1059,12 +1329,13 @@ components:
         nacionalidad: { type: string, example: Colombia, description: Uno de `/api/ciudades/paises`. }
     UsuarioParcial:
       type: object
-      description: Cualquier subconjunto de los campos del perfil. `rol` se descarta.
       properties:
         nombre: { type: string }
         apellido: { type: string }
         telefono: { type: string }
         nacionalidad: { type: string }
+        fechaNacimiento: { type: string, format: date, description: "Opcional (oficial). `YYYY-MM-DD`." }
+      description: Cualquier subconjunto de los campos del perfil. `rol` se descarta; cambiar `uid` o `email` da 400 (oficial).
     Usuario:
       type: object
       properties:
@@ -1075,6 +1346,7 @@ components:
         telefono: { type: string }
         nacionalidad: { type: string }
         email: { type: string, description: Lo toma del token. }
+        fechaNacimiento: { type: [string, "null"], format: date, description: Opcional (oficial). }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
         __v: { type: integer }
@@ -1111,14 +1383,17 @@ components:
         ciudadOrigen: { type: string }
         ciudadDestino: { type: string }
         fechaViaje: { type: string, format: date-time, description: "Medianoche UTC: leer como fecha de calendario." }
-        estado: { type: string, enum: [disponible, completado], description: Pasa a `completado` al consultar después de la fecha. }
+        estado:
+          type: string
+          enum: [disponible, completado, cancelado, contactado]
+          description: Pasa a `completado` al consultar después de la fecha, o con `PATCH …/estado`. `contactado` solo aparece en el oficial.
         createdAt: { type: string, format: date-time }
         __v: { type: integer }
 
     EstadoEncomienda:
       type: string
       enum: [disponible, tomada, vencida, entregada, recibida]
-      description: No existe `cancelada`.
+      description: No existe `cancelada`. El oficial no lista `entregada`, pero el servidor la acepta.
     EncomiendaEntrada:
       type: object
       required: [ciudadOrigen, ciudadDestino, observaciones, moneda, valor]
@@ -1145,6 +1420,8 @@ components:
         fechaVencimiento: { type: string, format: date-time, description: Siempre creación + 1 mes. }
         fechaDisponibleDesde: { type: string, format: date-time }
         fechaLimiteEntrega: { type: [string, "null"], format: date-time }
+        fotoUrl: { type: [string, "null"], description: Siempre `null`; no hay endpoint para subir la foto. }
+        remitenteNombre: { type: string, description: Solo en `/buscar`. }
         __v: { type: integer }
     EncomiendaPublica:
       type: object

@@ -1,6 +1,6 @@
 # 11. Plan de trabajo: Swagger oficial y observaciones del profesor
 
-> **Estado:** en desarrollo (28-oct-2026). Pasos 1 (2H) y 2 (Fase 0) hechos; sigue la Fase 1.
+> **Estado:** en desarrollo (28-oct-2026). Pasos 1 (2H), 2 (Fase 0) y 3 (Fase 1) hechos; sigue 2A.
 >
 > **Fuentes:**
 > - el Swagger oficial: https://lapticon-backend.onrender.com/api-docs/ (copia en `referencias/swagger-oficial.json`);
@@ -378,7 +378,7 @@ Puede quedar en comentarios.
 |---|---|---|---|---|
 | 1 | **2H Quitar "Verificar vuelo"** (observación del profesor; no depende del servidor) | — | 4 h | ✅ PWA `5c07e21` · Flutter `1854e3b` |
 | 2 | Fase 0 (verificación con datos desechables) | — | 1 h | ✅ (ver resultados) |
-| 3 | Fase 1 (docs + Swagger propio) | Paso 2 | 2 h | ⬜ |
+| 3 | Fase 1 (docs + Swagger propio) | Paso 2 | 2 h | ✅ |
 | 4 | 2A Cancelar viaje (Flutter y PWA) | Paso 2 | 6 h | ⬜ |
 | 5 | 2B Viajero con remitente conocido | Paso 2 | 8 h | ⬜ |
 | 6 | **2G Que quede claro que la tomaron** (observación del profesor) | Paso 5 (nombres; sin ellos funciona con texto genérico) | 8 h | ⬜ |
@@ -401,7 +401,11 @@ Commits pequeños por paso y por repo (`feat:`, `fix:`, `test:`, `docs:`).
 2. **¿Cuándo estará cancelar encomienda?** ¿Será el estado `cancelada` o un `DELETE`?
 3. El enum oficial de encomienda no tiene `entregada`, pero el servidor la acepta. ¿El flujo correcto es
    `tomada → entregada → recibida` o `tomada → recibida`?
-4. `GET /api/chats/estado/{chatId}`: ¿qué `chatId` espera el backend y quién crea ese documento?
+4. ~~`GET /api/chats/estado/{chatId}`: ¿qué `chatId` espera el backend?~~ Respondida en la Fase 0 (uids ordenados).
+   Nueva: el chat se cierra al marcar `entregada`, antes de calificar. ¿Es intencional?
 5. Viaje `contactado`: ¿quién lo pone y cuándo?
 6. `GET /api/encomiendas/vencidas` devuelve las de todos los usuarios. ¿Es intencional?
 7. ¿Hay endpoint para subir la foto (`fotoUrl`)?
+8. Un viaje `cancelado` se puede volver a `disponible`. ¿Debería impedirse?
+
+Copiadas en `docs/06` como P13–P20.

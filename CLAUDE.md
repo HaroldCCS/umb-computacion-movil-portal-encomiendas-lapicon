@@ -55,13 +55,21 @@ repositorios = contrato de la API) · `lib/features/<funcionalidad>` (pantallas,
 Las pantallas nunca llaman a `http`/Firebase directo. Rutas compartidas y sus argumentos en `lib/core/router/routes.dart`.
 La navegación de onboarding la decide `redirectFor()` según `SessionStatus`.
 
-## Contrato del backend (verificado el 22-oct-2026 con dos cuentas propias; detalle en docs/03)
+## Contrato del backend (verificado el 22-oct y el 28-oct-2026 con dos cuentas propias; detalle en docs/03 y docs/api/)
+- Fuente oficial: Swagger del profesor (`referencias/swagger-oficial.json`). Su `servers` apunta a un host que no existe;
+  la URL buena sigue siendo `lapticon-backend.onrender.com`.
 - Respuestas: `/api/users` → `{ message?, user }`; errores siempre `{ error }`. Respuestas guardadas en `referencias/respuestas/`.
 - El backend **no guarda `rol`** (vive en la app), **ignora `fechaVencimiento`** (vence al mes) y **`encomiendaId`** (rating).
 - Estados de encomienda: `disponible, tomada, vencida, entregada, recibida` (no hay `cancelada`; retirar = `vencida`).
-- `PUT /api/encomiendas/tomar/:id` existe; `GET /api/vuelos/...`, `GET /api/chats/estado/...` y `POST /api/chatbot`
-  responden 500 (problemas de configuración del servidor).
-- Falta confirmar: estructura y reglas de Firestore para el chat (propuesta en `features/chat/chat_service.dart`).
+- Viajes: `PATCH /api/viajes/{id}/estado` con `cancelado` o `completado` (no `contactado`); un viaje cancelado se puede
+  reactivar, pero la app no lo ofrece. `GET /api/viajes/disponibles` (pública) da el `nombreUsuario` de los viajeros de una ruta.
+- Viajero: `GET /api/encomiendas/buscar?origen&destino` → `{ disponibles, tomadas }`, con `uid` y `remitenteNombre`.
+  Incluye las propias, y `tomadas` solo trae las que están en `tomada` (lo entregado sigue en el celular).
+- Chat: `GET /api/chats/estado/{uids ordenados con _}` → `{ estado: activo|cerrado, fechaCierre }`. Se abre al tomar y
+  se cierra al marcar `entregada` (es por par de usuarios).
+- `POST /api/encomiendas/emparejar-viajes` responde. `GET /api/vuelos/...` (pública) y `POST /api/chatbot` dan 500, por
+  configuración del servidor. "Verificar vuelo" se quitó de la interfaz.
+- Falta confirmar: las reglas de Firestore para el chat (propuesta en `features/chat/chat_service.dart`).
 - Cuentas de prueba propias: el remitente y el viajero de Harold. Tokens con `lapticon_app/tool/obtener_token.sh` (fuera del repo).
 
 ## Comandos
