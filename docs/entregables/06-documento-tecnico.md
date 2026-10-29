@@ -103,7 +103,7 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | C7 | Viajes sugeridos por el matching IA | O | ❌ no existe en el backend |
 | **RF-D** | **Viajes (viajero)** | | |
 | D1 | Registrar viaje | M | ✅ |
-| D2 | Validar el vuelo con AeroDataBox | M | 🟡 implementado; el servidor responde 500 → queda "Sin verificar" |
+| D2 | Validar el vuelo con AeroDataBox | M | 🟡 retirado de la interfaz: el servidor responde 500 (`RAPIDAPI_KEY`); queda listo en el repositorio (docs/11 §2H) |
 | D3 | Un viaje activo a la vez (400) | M | ✅ hoja con "Ver mi viaje" |
 | D4–D5 | Mi viaje, historial y encomiendas disponibles de la ruta | M | ✅ |
 | D6–D7 | Tomar una encomienda y ver las que tomé | M | ✅ (las tomadas se recuerdan en el dispositivo) |
@@ -222,7 +222,7 @@ Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el ser
 |---|---|---|
 | Backend (MongoDB) | Perfil, viajes, encomiendas, calificaciones | Fuente de verdad compartida |
 | Firestore | Chats y mensajes | Tiempo real |
-| Dispositivo (`SharedPreferences` / `localStorage`) | Rol, entregas calificadas, encomiendas tomadas, vuelos verificados, caché de ciudades (7 días) | El backend no guarda esos datos o no hace falta pedirlos cada vez |
+| Dispositivo (`SharedPreferences` / `localStorage`) | Rol, entregas calificadas, encomiendas tomadas, caché de ciudades (7 días) | El backend no guarda esos datos o no hace falta pedirlos cada vez |
 
 ### 4.7 Manejo de errores
 
@@ -233,7 +233,7 @@ Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el ser
 | 400 regla de negocio | Hoja que explica y ofrece el camino ("Ver mi viaje") |
 | 401 | Renueva el token y reintenta una vez |
 | 403 / 404 | "No tienes permiso…" / estado vacío cuando "no hay" es normal |
-| 500 de vuelos, chat o asistente | Mensaje específico; el flujo sigue ("Sin verificar", chat abierto, "Reintentar") |
+| 500 de vuelos, chat o asistente | Mensaje específico; el flujo sigue (vuelos: no se muestra; chat abierto; asistente con "Reintentar") |
 
 ### 4.8 Despliegue e integración continua
 

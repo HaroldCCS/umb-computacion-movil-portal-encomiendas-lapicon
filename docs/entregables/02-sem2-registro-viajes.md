@@ -5,7 +5,7 @@
 
 ## 1. Objetivo
 
-Que el viajero registre su vuelo real, intente verificarlo contra un servicio externo y, con el viaje activo, vea las
+Que el viajero registre su vuelo real y, con el viaje activo, vea las
 encomiendas que van por su misma ruta.
 
 ## 2. Qué hace la app
@@ -13,9 +13,9 @@ encomiendas que van por su misma ruta.
 | Función | Endpoint | Comportamiento |
 |---|---|---|
 | Registrar viaje | `POST /api/viajes` | Número de vuelo (`AV24`, `AA123`…), fecha, ciudad de origen y destino elegidas de la lista oficial. |
-| Verificar el vuelo | `GET /api/vuelos/{numero}/{fecha}` | Botón "Verificar vuelo" con indicador de carga. Hoy el servidor responde **500**: la app lo dice ("Verificación no disponible… aparecerá como *sin verificar*") y deja registrar igual. |
+| Verificar el vuelo | `GET /api/vuelos/{numero}/{fecha}` | **Retirado de la interfaz** (observación del profesor): el servidor responde siempre **500** (`RAPIDAPI_KEY`), así que no se muestra. El número de vuelo se sigue pidiendo y mostrando; la llamada queda lista en el repositorio. |
 | Un viaje a la vez | `POST /api/viajes` → **400** | El mensaje del backend se explica en una hoja con el camino: "Ver mi viaje". |
-| Mi viaje | `GET /api/viajes/disponible` | Tarjeta principal: ruta, vuelo, fecha, **"Vuelo verificado" o "Sin verificar"**, cuántas lleva por entregar y cuánto le pagan. 404 = "sin viaje activo" (no es error). |
+| Mi viaje | `GET /api/viajes/disponible` | Tarjeta principal: ruta, vuelo, fecha, cuántas lleva por entregar y cuánto le pagan. 404 = "sin viaje activo" (no es error). |
 | Historial | `GET /api/viajes` | Últimos 5 viajes con su estado (Activo / Completado). |
 | Explorar | `GET /api/encomiendas/disponibles?origen=&destino=` | Encomiendas de su ruta, con lo que pagan a la vista y orden por "Más recientes" o "Vencen pronto". |
 
@@ -31,7 +31,7 @@ encomiendas que van por su misma ruta.
 
 - Con viaje activo **no se muestra el botón "+"** de registrar otro.
 - El viajero **no ve sus propias encomiendas** (publicadas como remitente) en Explorar, aunque el backend las incluya.
-- Si un vuelo no se pudo verificar, la tarjeta lo dice **siempre** ("Sin verificar"): no se oculta.
+- No se promete una verificación que el servidor no puede hacer: ni botón ni insignia de "verificado".
 
 ## 5. Evidencia
 
@@ -39,7 +39,6 @@ encomiendas que van por su misma ruta.
 |---|---|---|
 | Pantallas | `lib/features/viajero/registrar_viaje_screen.dart`, `mi_viaje_screen.dart`, `explorar_screen.dart` | `src/funciones/viajero/RegistrarViaje.tsx`, `MiViaje.tsx`, `Explorar.tsx` |
 | Lógica pura | `viajero_logic.dart` | `funciones/viajero/logica.ts` |
-| Pruebas | `test/viajero/viajero_logic_test.dart`, `viajero_v2_test.dart` | `funciones/logica.test.ts`, E2E "registrar viaje sin verificación y la regla de un solo viaje" |
+| Pruebas | `test/viajero/viajero_logic_test.dart`, `viajero_v2_test.dart` | `funciones/logica.test.ts`, E2E "registrar viaje y la regla de un solo viaje" |
 
-**Cómo demostrarlo:** registrar un vuelo Bogota → Miami, pulsar "Verificar vuelo" (se ve el aviso de verificación no
-disponible), registrar, intentar registrar un segundo viaje (hoja con la regla del backend) y abrir Explorar.
+**Cómo demostrarlo:** registrar un vuelo Bogota → Miami, intentar registrar un segundo viaje (hoja con la regla del backend) y abrir Explorar.

@@ -1,6 +1,6 @@
 # 11. Plan de trabajo: Swagger oficial y observaciones del profesor
 
-> **Estado:** plan, sin desarrollar (28-oct-2026).
+> **Estado:** en desarrollo (28-oct-2026). Paso 1 (2H) hecho; sigue la Fase 0.
 >
 > **Fuentes:**
 > - el Swagger oficial: https://lapticon-backend.onrender.com/api-docs/ (copia en `referencias/swagger-oficial.json`);
@@ -355,7 +355,7 @@ Puede quedar en comentarios.
 
 | Paso | Qué | Depende de | Tiempo aprox. | Estado |
 |---|---|---|---|---|
-| 1 | **2H Quitar "Verificar vuelo"** (observación del profesor; no depende del servidor) | — | 4 h | ⬜ |
+| 1 | **2H Quitar "Verificar vuelo"** (observación del profesor; no depende del servidor) | — | 4 h | ✅ PWA `5c07e21` · Flutter `1854e3b` |
 | 2 | Fase 0 (verificación con datos desechables) | — | 1 h | ⬜ |
 | 3 | Fase 1 (docs + Swagger propio) | Paso 2 | 2 h | ⬜ |
 | 4 | 2A Cancelar viaje (Flutter y PWA) | Paso 2 | 6 h | ⬜ |

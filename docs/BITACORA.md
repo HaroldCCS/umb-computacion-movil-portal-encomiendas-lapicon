@@ -225,3 +225,18 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 - `$ref` dentro de `example` no lo resuelve Swagger → los ejemplos repetidos usan anclas YAML (`x-ejemplos`).
 - El backend no envía `Access-Control-Allow-Origin`, así que "Try it out" fallaría en el navegador → el visor es de
   solo lectura y las pruebas siguen en Postman o `curl`.
+
+## 2026-10-28 — Paso 11: quitar "Verificar vuelo" (docs/11 §2H)
+
+**Qué se hizo**
+- Observación del profesor: "verificar vuelo" no funciona (el servidor responde siempre 500 por `RAPIDAPI_KEY`), así
+  que no debe mostrarse. Se quitó de las dos apps:
+  - Registrar viaje: el botón, los avisos ("Verificación no disponible", "Vuelo no encontrado") y el subtítulo. Ahora
+    dice "Los remitentes de tu ruta verán tu vuelo y fecha.";
+  - Mi viaje: la insignia "Vuelo verificado" / "Sin verificar";
+  - la memoria local `viajero_vuelos_verificados_{uid}`, `claveVuelo` y, en Flutter, `VueloVerificadoBadge`.
+- Se conservan `validarVuelo` en el repositorio y la comprobación de `humo`, por si el servidor vuelve a responder.
+- Pruebas nuevas: Registrar viaje y Mi viaje no muestran ningún texto con "verific".
+- Docs al día: video, sustentación, documento técnico, semana 2, UX/UI, docs/07 y docs/03.
+- Verificado: PWA typecheck, lint, 123 unitarias y 26 E2E; Flutter analyze sin problemas y 217 pruebas.
+  Commits: PWA `5c07e21`, Flutter `1854e3b` (sin push).

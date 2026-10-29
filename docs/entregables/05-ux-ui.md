@@ -17,7 +17,7 @@ ambigüedad en las acciones** (tomar, entregar y retirar tienen consecuencias re
 | Fuente | Qué se tomó |
 |---|---|
 | Apps de envío entre personas: **Grabr, Roadie, Dolly** | Valor visible desde la tarjeta, perfil y reseñas antes de confiar, aviso de cambio de estado |
-| Confianza en marketplaces | Reseñas mutuas, insignias de verificación ("Vuelo verificado"), lista corta y relevante (solo *mi* ruta) |
+| Confianza en marketplaces | Reseñas mutuas, lista corta y relevante (solo *mi* ruta) |
 | Formularios móviles (Baymard) | Validar al salir del campo, quitar el error apenas se corrige, check verde, etiqueta siempre visible |
 | Accesibilidad (WCAG / Flutter) | Contraste ≥ 4.5:1, toques ≥ 48 dp, letra del sistema al doble sin desbordes |
 
@@ -28,7 +28,7 @@ cada mes y quiere ganar algo extra sin complicarse).
 
 1. **La ruta es la protagonista:** cada encomienda es un **pase de abordar** (ORIGEN → DESTINO con muescas).
 2. **Estado siempre visible**, con color **+ ícono + texto**, y línea de tiempo en el detalle.
-3. **Confianza a la vista:** ★ promedio y reseñas; "Vuelo verificado" **o "Sin verificar"** (nunca se oculta).
+3. **Confianza a la vista:** ★ promedio y reseñas. No se muestra lo que no se puede cumplir: "Verificar vuelo" se quitó porque el servidor no lo soporta.
 4. **La acción importante no se esconde:** una principal por pantalla, fija abajo en los detalles; los avisos llevan
    directo a ella y las pestañas cuentan lo pendiente.
 5. **Ningún error en silencio:** cargando con texto ("Publicando…"), error **junto al botón**, éxito en aviso flotante.

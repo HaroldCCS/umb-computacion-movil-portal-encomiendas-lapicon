@@ -55,7 +55,7 @@ solo en la app (`shared_preferences`), como ya hacía `UsuarioRepository.guardar
 | GET | `/api/viajes/buscar?ciudad=Bogota` | `ciudad` = origen | **200** arreglo de viajes (incluye `uid` del viajero) | ✅ |
 | GET | `/api/vuelos/{numero}/{fecha}` | — | **500** `{ error: "RAPIDAPI_KEY no está configurada en el servidor" }` | ⚠️ existe, pero falla en el servidor |
 
-Con `/api/vuelos` caído, la app muestra "No pudimos verificar el vuelo" y deja registrar el viaje igual.
+Con `/api/vuelos` caído, la app **no muestra** la verificación del vuelo (docs/11 §2H): se registra con número, ruta y fecha.
 
 ### Encomiendas ✅
 

@@ -20,7 +20,7 @@
 ### Confianza en marketplaces entre pares
 
 - Las **reseñas** son el mecanismo principal: estrellas + texto, visibles desde el primer día, y **reseñas mutuas** (ambas partes califican).
-- **Verificar la oferta**: insignias por pasos completados (en nuestro caso: perfil completo, vuelo validado con AeroDataBox).
+- **Verificar la oferta**: insignias por pasos completados (en nuestro caso: perfil completo; validar el vuelo con AeroDataBox queda para cuando el servidor lo soporte).
 - Perfiles fuertes: calificación, número de reseñas, antigüedad y verificaciones.
 - Pedir solo lo esencial en el registro (nombre, correo, contraseña) y pedir el resto **cuando se necesita**, explicando por qué.
 - Mostrar **una lista corta y relevante** de coincidencias (encomiendas de *mi* ruta) en vez de un catálogo enorme.
@@ -53,8 +53,8 @@ una vez, ver solo encomiendas de su ruta con el valor que paga cada una, tomarla
 
 1. **La ruta es la protagonista.** Cada encomienda es un pase de abordar: *ORIGEN → DESTINO* en grande.
 2. **El estado siempre visible**, con color **+ ícono + texto** (nunca solo color) y línea de tiempo en el detalle.
-3. **Confianza a la vista.** Calificación ★, número de reseñas y "Vuelo verificado" **o "Sin verificar"**: si algo
-   no se pudo comprobar, la interfaz lo dice siempre (hoy `/api/vuelos` responde 500).
+3. **Confianza a la vista.** Calificación ★ y número de reseñas. La interfaz no promete lo que no puede cumplir:
+   "Verificar vuelo" se quitó porque `/api/vuelos` responde siempre 500 (docs/11 §2H).
 4. **La acción importante nunca queda escondida.** Una acción principal por pantalla; en los detalles va **fija
    abajo**. Los avisos ("Tu encomienda ya fue entregada · Califica al viajero") llevan **directo** a la acción
    (`?accion=calificar|entregar`) y la explican encima del botón. Las pestañas cuentan lo pendiente.
@@ -88,7 +88,7 @@ Perfil: calificaciones · datos de contacto · cambiar de rol · cerrar sesión
 - **Inicio (remitente):** encabezado (saludo, fecha, avatar → Perfil), tarjeta principal Medianoche con los envíos
   activos, avisos por calificar y *Vista rápida* (por calificar, entregadas, buscar viajeros, asistente).
 - **Envíos:** chips *Activas · Entregadas · Historial*; toca → detalle.
-- **Mi viaje:** tarjeta Cielo (ruta, vuelo, verificado o no, por entregar, te pagan), avisos, mis entregas, historial.
+- **Mi viaje:** tarjeta Cielo (ruta, vuelo, por entregar, te pagan), avisos, mis entregas, historial.
 - **Explorar:** encomiendas de la ruta del viaje, ordenables por *Más recientes* o *Vencen pronto*.
 - Lo que se calificó se recuerda en el teléfono (`Prefs.calificadas`): el backend ignora `encomiendaId`.
 
@@ -167,7 +167,7 @@ Montos con **cifras tabulares** (`Monto`).
 | Detalle (remitente) | Pase, línea de tiempo, detalles, quién la lleva; pie: retirar (RETIRAR), chat o calificar |
 | Buscar viajeros | Ciudad arriba; cada viajero con su calificación y el pase de su vuelo |
 | Mi viaje / Explorar | Tarjeta Cielo y avisos / ruta del viaje, orden y valor a la vista |
-| Registrar viaje | Fecha con rueda iOS; verificación dice si quedará "sin verificar" |
+| Registrar viaje | Fecha con rueda iOS; sin verificación del vuelo (el servidor no la soporta) |
 | Encomienda (viajero) | Tomar = hoja con la responsabilidad completa; entregar = escribir ENTREGAR |
 | Chats / chat | Lista agrupada; burbujas propias en Medianoche; chat cerrado con candado y explicación |
 | Calificar / Reseñas | Estrellas de 48 dp, sugerencias en chips, comentario; resumen con barras por estrella |
