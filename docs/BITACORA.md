@@ -315,3 +315,35 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 
 **Errores encontrados y cómo se resolvieron**
 - El E2E de punta a punta esperaba "La publicó Ana" → ahora se ve la fila "Remitente: Ana…" con calificación.
+
+## 2026-10-28 — Paso 16: que quede claro que un viajero tomó la encomienda (docs/11 §2G)
+
+**Qué se hizo** (observación del profesor; igual en las dos apps)
+- `tomada` ya no dice "En camino": es **"Tomada"** con ícono de persona para el remitente, y **"La llevas tú"** con
+  maleta para el viajero que la lleva (`etiquetaEstado` / `etiquetaPara`).
+- En Inicio del remitente, la tarjeta dice "Tomadas" y la nota, "1 tomada por un viajero".
+- **Aviso al remitente:** la clave local nueva `remitente_estados_vistos_{uid}` guarda el último estado visto de cada
+  encomienda.
+  - Si una pasa de `disponible` a `tomada`, arriba en Inicio y Envíos aparece "¡{nombre} tomó tu encomienda
+    {origen} → {destino}!", con "Escribirle", "Ver envío" y "Entendido".
+  - La pestaña Envíos cuenta "1 nueva".
+  - La primera vez (sin mapa) no avisa de nada.
+- **Detalle del remitente:**
+  - "Quién la lleva" va justo debajo del pase, con calificación y "Escribirle";
+  - el pie del estado dice "{nombre} aceptó llevarla. Coordinen por chat…";
+  - el paso 2 de la línea de tiempo se llama "Tomada por un viajero".
+- **Detalle del viajero:** aviso fijo "Tú llevas esta encomienda" con tres pasos numerados (incluye el número de
+  vuelo). "Escribir al remitente" pasa a ser la acción principal y "Marcar como entregada", la secundaria.
+- **Explorar:** sección "Las que llevas" arriba de las disponibles.
+- Pruebas:
+  - PWA: 129 unitarias (etiquetas por rol, detección de nuevas tomadas) y 30 E2E. El de punta a punta comprueba que
+    el remitente ve el aviso al entrar y que el viajero ve "Tú llevas esta encomienda";
+  - Flutter: 229 pruebas (lógica, aviso en Inicio con Prefs, detalle del remitente, detalle del viajero e insignias).
+- Criterio de aceptación: no queda ningún "En camino" en `src` ni en `lib`.
+- Commits: PWA `e05d2ef`, Flutter `2efddf4` (sin push).
+
+**Errores encontrados y cómo se resolvieron**
+- En Flutter, un aviso vacío en la lista de Inicio dejaba el hueco del separador → el aviso solo se agrega si hay
+  nuevas, y lo visto se guarda con `ref.listen` en Inicio y Envíos.
+- Las pruebas que buscaban "márcala como entregada" encontraban dos textos (el aviso nuevo y el pie) → ahora buscan el
+  pie por "Cuando la dejes en destino".

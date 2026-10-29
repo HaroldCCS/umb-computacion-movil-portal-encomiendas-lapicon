@@ -25,7 +25,8 @@ calificar, con las dos partes usando la app al mismo tiempo.
 
 1. A se registra, completa el perfil y elige **Remitente**; publica una encomienda Bogota → Miami.
 2. B se registra, elige **Viajero**, registra un vuelo Bogota → Miami y ve la encomienda de A en Explorar.
-3. B la toma → A la ve **En camino**, con B como viajero y su calificación.
+3. B la toma y ve "Tú llevas esta encomienda" → A recibe el aviso "¡Un viajero tomó tu encomienda…!" y la ve
+   **Tomada**, con B como viajero y su calificación.
 4. A y B **chatean en tiempo real**.
 5. B la marca **entregada** escribiendo ENTREGAR → A recibe el aviso → ambos se califican.
 6. Con errores del backend (400, 401, 403, 500, sin red o servidor dormido) la app explica qué pasó y no se cierra.

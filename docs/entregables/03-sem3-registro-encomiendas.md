@@ -36,8 +36,9 @@ DISPONIBLE ──tomar──► TOMADA ──entregar──► ENTREGADA ──(
     └── retirar o un mes después ──► VENCIDA
 ```
 
-Cada estado se muestra con **color + ícono + texto** (nunca solo color): Disponible, En camino, Entregada, Recibida,
-Vencida. Los estados del backend se actualizan "perezosamente", por eso cada lista se refresca al abrirla y con el
+Cada estado se muestra con **color + ícono + texto** (nunca solo color): Disponible, Tomada, Entregada, Recibida,
+Vencida. Cuando un viajero la toma, el remitente lo sabe sin buscarlo: aviso arriba en Inicio y Envíos, contador
+"1 nueva" y, en el detalle, "Quién la lleva" justo debajo del pase (observación del profesor, docs/11 §2G). Los estados del backend se actualizan "perezosamente", por eso cada lista se refresca al abrirla y con el
 gesto de jalar hacia abajo.
 
 ## 5. Evidencia
@@ -49,4 +50,4 @@ gesto de jalar hacia abajo.
 | Pruebas | `test/remitente/envios_logic_test.dart`, `remitente_v2_test.dart`, `status_timeline_test.dart` | `logica.test.ts`, E2E "retirar exige escribir RETIRAR" y el flujo de punta a punta |
 
 **Cómo demostrarlo:** como remitente, publicar Bogota → Miami (mostrar el error si origen y destino son iguales);
-como viajero con un viaje en esa ruta, verla en Explorar y tomarla; de vuelta como remitente, verla "En camino".
+como viajero con un viaje en esa ruta, verla en Explorar y tomarla; de vuelta como remitente, ver el aviso "¡Un viajero tomó tu encomienda…!" y la insignia "Tomada".

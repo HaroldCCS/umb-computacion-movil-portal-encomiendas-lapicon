@@ -111,8 +111,12 @@ Ningún widget usa colores directos (salvo blanco sobre los degradados y el velo
 
 - **Degradados de la tarjeta principal:** Medianoche `#3A5A8C → #1B2A4A → #0F1A30` (remitente) y Cielo
   `#1A5FB0 → #0B4F9E → #083A75` (viajero), con brillo radial blanco al 10 %. Texto blanco con AA.
-- **Estados → insignia:** disponible = info + reloj · tomada ("En camino") = atención + maleta · entregada /
-  recibida = éxito + check · vencida y viaje completado = neutra.
+- **Estados → insignia:** disponible = info + reloj · tomada = atención, según quién mira: **"Tomada"** + persona
+  para el remitente y **"La llevas tú"** + maleta para el viajero que la lleva (docs/11 §2G) · entregada / recibida
+  = éxito + check · vencida y viaje completado = neutra · viaje cancelado = peligro + círculo con X.
+- **"Te la tomaron":** el remitente ve arriba en Inicio y Envíos "¡{nombre} tomó tu encomienda…!" (Escribirle ·
+  Ver envío · Entendido) y "1 nueva" en la pestaña. El viajero ve un aviso fijo "Tú llevas esta encomienda" con los
+  pasos que siguen.
 - **En oscuro no hay sombras**: la separación la dan las superficies y el borde.
 - Todos los pares texto/fondo se validan en `test/theme/tema_test.dart`.
 
