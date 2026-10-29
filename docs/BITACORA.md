@@ -240,3 +240,22 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 - Docs al día: video, sustentación, documento técnico, semana 2, UX/UI, docs/07 y docs/03.
 - Verificado: PWA typecheck, lint, 123 unitarias y 26 E2E; Flutter analyze sin problemas y 217 pruebas.
   Commits: PWA `5c07e21`, Flutter `1854e3b` (sin push).
+
+## 2026-10-28 — Paso 12: Fase 0 contra el servidor real (docs/11)
+
+**Qué se hizo**
+- Se verificó con las dos cuentas propias y datos desechables (Cali → Lima): cancelar y completar viaje, tomar,
+  entregar y recibir, `buscar` / `disponibles2` / `mis-encomiendas`, el 403 a un tercero, el estado del chat,
+  `viajes/disponibles` (pública) y `emparejar-viajes`. Hay 31 respuestas en `referencias/respuestas/fase0_*.json`.
+- Hallazgos principales:
+  - `PATCH /api/viajes/{id}/estado` funciona (no acepta `contactado`), y un viaje cancelado se puede reactivar;
+  - `buscar` trae `uid` y `remitenteNombre`, pero `tomadas` solo trae las `tomada`;
+  - el chat se cierra al marcar `entregada` y se reabre al tomar otra encomienda del mismo par;
+  - `emparejar-viajes` responde 200.
+
+**Errores encontrados y cómo se resolvieron**
+- Los tokens guardados estaban vencidos → `RENOVAR=1 bash tool/obtener_token.sh`.
+- El Python del sistema no tiene certificados SSL → las peticiones se hicieron con `curl`, pasándole el token por la
+  entrada estándar para que no aparezca en la salida.
+- Marcar `entregada` dejó cerrado el chat del par de la demo → se tomó una tercera encomienda desechable (C) para
+  reabrirlo.

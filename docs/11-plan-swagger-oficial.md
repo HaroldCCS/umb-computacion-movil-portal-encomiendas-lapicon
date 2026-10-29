@@ -1,6 +1,6 @@
 # 11. Plan de trabajo: Swagger oficial y observaciones del profesor
 
-> **Estado:** en desarrollo (28-oct-2026). Paso 1 (2H) hecho; sigue la Fase 0.
+> **Estado:** en desarrollo (28-oct-2026). Pasos 1 (2H) y 2 (Fase 0) hechos; sigue la Fase 1.
 >
 > **Fuentes:**
 > - el Swagger oficial: https://lapticon-backend.onrender.com/api-docs/ (copia en `referencias/swagger-oficial.json`);
@@ -137,6 +137,27 @@ tocan el viaje AV10 ni las encomiendas de la demo.
    inverso) para encontrar el que da 200.
 6. `POST /api/encomiendas/emparejar-viajes`: ¿responde o da 500?
 7. Guardar todas las respuestas en `referencias/respuestas/` (con teléfono y correo ocultos), como en docs/03.
+
+#### Resultados de la Fase 0 (28-oct-2026) ✅
+
+Con las dos cuentas propias y datos desechables (ruta **Cali → Lima**, valor USD 1). Respuestas en
+`referencias/respuestas/fase0_*.json`.
+
+| # | Pregunta | Resultado | Qué cambia en el plan |
+|---|---|---|---|
+| 1 | Cancelar viaje | `PATCH { estado: "cancelado" }` → **200** `{ message, viaje }`. Después, `GET /disponible` → 404 y `POST /api/viajes` → 201. Con `completado` pasa lo mismo. Acepta solo `disponible`, `completado` y `cancelado`: **`contactado` da 400**. Otro usuario → **404** "Viaje no encontrado o no autorizado". **Un viaje cancelado se puede volver a `disponible`.** | 2A se puede construir. La app no ofrece reactivar. `contactado` solo se muestra si llega. |
+| 2 | `buscar` y `tomadas` | Al tomarla, sale en `tomadas` con `uid`, `viajeroId` y **`remitenteNombre`**. Con `entregada` o `recibida` **desaparece de las dos listas.** Tomar **no exige** que la ruta coincida con el viaje del viajero. | 2B: el nombre del remitente viene en `buscar`. "Mis entregas" = `tomadas` + lo guardado en el celular, que sigue haciendo falta para `entregada` y `recibida`. |
+| 3 | ¿Excluyen las propias? | `buscar` **no** las excluye. `disponibles2` **sí** (las del remitente: `[]`). | 2B: mantener el filtro por `uid` (ya no hace falta cruzar con `GET /api/encomiendas`, porque `buscar` trae el `uid`). |
+| 4 | Estado desde un tercero | `PUT /{id}/estado` desde una cuenta que no es remitente ni viajero asignado → **403** "No autorizado para modificar esta encomienda". | Ninguno. |
+| 5 | `chatId` del estado del chat | **Uids ordenados con `_`** (el que ya usa la app) → **200 `{ estado: "activo", fechaCierre: null }`**. En orden inverso, o con el id de la encomienda → 404. Al **tomar** queda `activo`. Al marcar **`entregada`** pasa a **`cerrado`** con `fechaCierre`. **Tomar otra encomienda del mismo par lo reabre.** | 2E: tratar `cerrado` como bloqueado, y `activo`, 404 o 500 como abierto. El valor es `activo`, no `abierto`. El chat es por par, no por encomienda. |
+| 6 | `emparejar-viajes` | El primer intento se quedó sin respuesta (más de 120 s). El segundo: **200** en 0,5 s → `[{ viajeId, uid, afinidad, ciudadOrigen, ciudadDestino, fechaViaje }]`. `evaluar-emparejamiento` → 500 "Error al consultar motor de emparejamiento". | 2F se puede construir (con tiempo de espera y sin bloquear la publicación). |
+| 7 | Respuestas guardadas | 31 archivos `fase0_*.json`, con teléfono y correo ocultos. | — |
+
+**Datos que quedaron en el servidor:**
+- Encomiendas de prueba Cali → Lima: **A** `recibida`, **B** `entregada` y **C** `tomada` por el viajero. C deja abierto
+  el chat del par de la demo, porque B lo había cerrado.
+- Viaje de prueba **LA2401** Cali → Lima `completado` (cuenta remitente).
+- El viaje **A777** Bogota → Medellin de la cuenta remitente se canceló y se dejó otra vez en `disponible`, como estaba.
 
 ### Fase 1 — Documentación (repo de documentación, ~2 h)
 
@@ -356,7 +377,7 @@ Puede quedar en comentarios.
 | Paso | Qué | Depende de | Tiempo aprox. | Estado |
 |---|---|---|---|---|
 | 1 | **2H Quitar "Verificar vuelo"** (observación del profesor; no depende del servidor) | — | 4 h | ✅ PWA `5c07e21` · Flutter `1854e3b` |
-| 2 | Fase 0 (verificación con datos desechables) | — | 1 h | ⬜ |
+| 2 | Fase 0 (verificación con datos desechables) | — | 1 h | ✅ (ver resultados) |
 | 3 | Fase 1 (docs + Swagger propio) | Paso 2 | 2 h | ⬜ |
 | 4 | 2A Cancelar viaje (Flutter y PWA) | Paso 2 | 6 h | ⬜ |
 | 5 | 2B Viajero con remitente conocido | Paso 2 | 8 h | ⬜ |
