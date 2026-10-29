@@ -31,6 +31,15 @@ Plan y estado en `docs/10`; uso en `aplicacion_pwa/README.md`. Comandos: `npm ru
 `aplicacion_pwa/.env.local` (no se sube). Mismos nombres de componentes, mismas claves locales y mismo esquema de chat
 que Flutter: si cambia uno, revisar el otro. Despliegue en Cloudflare Pages pendiente (lo hace Harold).
 
+## Trabajo pendiente (28-oct-2026) — empezar por aquí
+**`docs/11-plan-swagger-oficial.md`** es el plan vigente y basta para desarrollar sin más contexto. Contiene:
+- el Swagger oficial del profesor (`referencias/swagger-oficial.json`), con lo que corrige de nuestro contrato;
+- sus dos observaciones de UX: que quede claro cuándo un viajero tomó la encomienda, y quitar "Verificar vuelo";
+- cancelar viaje, que ya existe: `PATCH /api/viajes/{id}/estado`;
+- el orden de los pasos y el criterio de aceptación de cada uno.
+
+Cancelar encomienda sigue bloqueado, esperando al profesor.
+
 ## Decisiones tomadas
 - Flutter, Android primero. Riverpod 3 (no usar `StateProvider`/`StateNotifierProvider`, están en legacy), go_router,
   `http`, `shared_preferences`, `google_fonts`, Firebase Auth + Cloud Firestore.
