@@ -1,0 +1,1386 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Lapticon API",
+    "version": "1.0.0",
+    "description": "API del backend de Lapticon (encomiendas y viajeros). Generado para el taller de Computación Móvil a partir del código real del backend (rama `education`).",
+    "contact": {
+      "name": "Lapticon"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://lapticon-backend-ed.onrender.com",
+      "description": "Producción (Render)"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Local"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Firebase ID Token",
+        "description": "Token obtenido de Firebase Auth (user.getIdToken() en el cliente). Se envía como `Authorization: Bearer <token>`."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "apellido": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "fechaNacimiento": {
+            "type": "string",
+            "format": "date"
+          },
+          "nacionalidad": {
+            "type": "string"
+          },
+          "correo": {
+            "type": "string"
+          }
+        }
+      },
+      "Viaje": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "numeroVuelo": {
+            "type": "string"
+          },
+          "ciudadOrigen": {
+            "type": "string"
+          },
+          "ciudadDestino": {
+            "type": "string"
+          },
+          "fechaViaje": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "disponible",
+              "completado",
+              "cancelado",
+              "contactado"
+            ]
+          }
+        }
+      },
+      "Encomienda": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "string",
+            "description": "Remitente"
+          },
+          "ciudadOrigen": {
+            "type": "string"
+          },
+          "ciudadDestino": {
+            "type": "string"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "moneda": {
+            "type": "string"
+          },
+          "valor": {
+            "type": "number"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "disponible",
+              "tomada",
+              "vencida",
+              "recibida"
+            ]
+          },
+          "viajeroId": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaVencimiento": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Rating": {
+        "type": "object",
+        "properties": {
+          "usuarioOrigen": {
+            "type": "string"
+          },
+          "usuarioDestino": {
+            "type": "string"
+          },
+          "rolDestino": {
+            "type": "string"
+          },
+          "calificacion": {
+            "type": "number"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "responses": {
+      "NoAutenticado": {
+        "description": "Falta o es inválido el token Bearer",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NoAutorizado": {
+        "description": "Token válido, pero no eres dueño del recurso",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NoEncontrado": {
+        "description": "El recurso no existe",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/users/register": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Registrar o actualizar mi perfil",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "apellido": {
+                    "type": "string"
+                  },
+                  "telefono": {
+                    "type": "string"
+                  },
+                  "fechaNacimiento": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "nacionalidad": {
+                    "type": "string"
+                  },
+                  "correo": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "nombre": "Ana",
+                "apellido": "Gómez",
+                "telefono": "3001234567",
+                "nacionalidad": "Colombia"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario guardado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/Usuario"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/users/{uid}": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Ver un perfil (solo el dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/Usuario"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "403": {
+            "$ref": "#/components/responses/NoAutorizado"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoEncontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Actualizar un perfil (solo el dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "nombre": "Ana Actualizada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Se intentó modificar uid o email"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "403": {
+            "$ref": "#/components/responses/NoAutorizado"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoEncontrado"
+          }
+        }
+      }
+    },
+    "/api/viajes": {
+      "post": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Registrar un viaje",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numeroVuelo": {
+                    "type": "string"
+                  },
+                  "ciudadOrigen": {
+                    "type": "string"
+                  },
+                  "ciudadDestino": {
+                    "type": "string"
+                  },
+                  "fechaViaje": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              },
+              "example": {
+                "numeroVuelo": "AA123",
+                "ciudadOrigen": "Bogota",
+                "ciudadDestino": "Miami",
+                "fechaViaje": "2026-12-01"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Viaje creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Viaje"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ya existe un viaje disponible para este usuario"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Listar mis viajes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de viajes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Viaje"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/viajes/disponible": {
+      "get": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Mi viaje disponible actual",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Viaje disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Viaje"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "404": {
+            "description": "No hay viajes disponibles"
+          }
+        }
+      }
+    },
+    "/api/viajes/buscar": {
+      "get": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Buscar viajeros por ciudad de origen",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ciudad",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bogota"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Viajes encontrados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Viaje"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Falta el parámetro ciudad"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/viajes/{id}/estado": {
+      "patch": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Cambiar estado de un viaje (solo el dueño)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "disponible",
+                      "completado",
+                      "cancelado"
+                    ]
+                  }
+                }
+              },
+              "example": {
+                "estado": "completado"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado actualizado"
+          },
+          "400": {
+            "description": "Estado inválido"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "404": {
+            "description": "No encontrado o no autorizado"
+          }
+        }
+      }
+    },
+    "/api/viajes/disponibles": {
+      "get": {
+        "tags": [
+          "Viajes"
+        ],
+        "summary": "Buscar viajes disponibles por ruta (pública)",
+        "parameters": [
+          {
+            "name": "ciudadOrigen",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bogota"
+          },
+          {
+            "name": "ciudadDestino",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Miami"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Viajes disponibles con nombre del viajero"
+          },
+          "400": {
+            "description": "Faltan parámetros de búsqueda"
+          }
+        }
+      }
+    },
+    "/api/encomiendas": {
+      "post": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Crear una encomienda",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ciudadOrigen": {
+                    "type": "string"
+                  },
+                  "ciudadDestino": {
+                    "type": "string"
+                  },
+                  "observaciones": {
+                    "type": "string"
+                  },
+                  "moneda": {
+                    "type": "string"
+                  },
+                  "valor": {
+                    "type": "number"
+                  }
+                }
+              },
+              "example": {
+                "ciudadOrigen": "Bogota",
+                "ciudadDestino": "Miami",
+                "observaciones": "Caja pequeña",
+                "moneda": "USD",
+                "valor": 20
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Encomienda creada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Encomienda"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Listar mis encomiendas (como remitente)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de encomiendas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Encomienda"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/disponibles": {
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Encomiendas disponibles por ruta (con nombre del remitente)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "origen",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bogota"
+          },
+          {
+            "name": "destino",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Miami"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Encomiendas disponibles"
+          },
+          "400": {
+            "description": "Origen y destino son requeridos"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/disponibles2": {
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Encomiendas disponibles (filtros opcionales, sin nombre de remitente)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ciudadOrigen",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ciudadDestino",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Encomiendas disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Encomienda"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/buscar": {
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Encomiendas disponibles + tomadas por mí, en una ruta",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "origen",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "destino",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ disponibles, tomadas }"
+          },
+          "400": {
+            "description": "Origen y destino son requeridos"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/vencidas": {
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Listar todas las encomiendas vencidas",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Encomiendas vencidas"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/mis-encomiendas": {
+      "get": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Mis encomiendas disponibles (remitente)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ disponibles }"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/tomar/{id}": {
+      "put": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Tomar una encomienda (como viajero)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Encomienda tomada"
+          },
+          "400": {
+            "description": "Ya fue tomada o venció"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoEncontrado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/{id}/estado": {
+      "put": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Cambiar estado (solo remitente o viajero asignado)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "enum": [
+                      "disponible",
+                      "tomada",
+                      "recibida",
+                      "vencida"
+                    ]
+                  }
+                }
+              },
+              "example": {
+                "estado": "recibida"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estado actualizado"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "403": {
+            "$ref": "#/components/responses/NoAutorizado"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoEncontrado"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/actualizar-vencidas": {
+      "post": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Forzar actualización de encomiendas vencidas (pública / tarea programada)",
+        "responses": {
+          "200": {
+            "description": "Encomiendas vencidas actualizadas"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/evaluar-emparejamiento": {
+      "post": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Consultar motor de IA de emparejamiento (requiere MATCHING_API_URL)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "origen_match": {
+                    "type": "string"
+                  },
+                  "destino_match": {
+                    "type": "string"
+                  },
+                  "dias_diferencia": {
+                    "type": "number"
+                  },
+                  "valor_encomienda": {
+                    "type": "number"
+                  },
+                  "reputacion_viajero": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ match: boolean }"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "500": {
+            "description": "Motor de emparejamiento no disponible"
+          }
+        }
+      }
+    },
+    "/api/encomiendas/emparejar-viajes": {
+      "post": {
+        "tags": [
+          "Encomiendas"
+        ],
+        "summary": "Sugerencias de viajes por IA (requiere OPENROUTER_API_KEY)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ciudadOrigen": {
+                    "type": "string"
+                  },
+                  "ciudadDestino": {
+                    "type": "string"
+                  },
+                  "fechaEncomienda": {
+                    "type": "string"
+                  },
+                  "valorEncomienda": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lista de viajes sugeridos"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/ratings": {
+      "post": {
+        "tags": [
+          "Ratings"
+        ],
+        "summary": "Calificar a otro usuario",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "usuarioDestino": {
+                    "type": "string"
+                  },
+                  "rolDestino": {
+                    "type": "string"
+                  },
+                  "calificacion": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "comentario": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "usuarioDestino": "uid-de-otro-usuario",
+                "rolDestino": "viajero",
+                "calificacion": 5,
+                "comentario": "Excelente"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Calificación guardada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rating"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          }
+        }
+      }
+    },
+    "/api/ratings/{uid}": {
+      "get": {
+        "tags": [
+          "Ratings"
+        ],
+        "summary": "Calificaciones recibidas por un usuario (pública)",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ total, promedio, calificaciones }"
+          }
+        }
+      }
+    },
+    "/api/chats/estado/{chatId}": {
+      "get": {
+        "tags": [
+          "Chats"
+        ],
+        "summary": "Estado de un chat (solo participantes)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ estado, fechaCierre }"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "403": {
+            "$ref": "#/components/responses/NoAutorizado"
+          },
+          "404": {
+            "$ref": "#/components/responses/NoEncontrado"
+          }
+        }
+      }
+    },
+    "/api/ciudades/ciudades": {
+      "get": {
+        "tags": [
+          "Ciudades"
+        ],
+        "summary": "Listar todas las ciudades (pública)",
+        "responses": {
+          "200": {
+            "description": "Lista de ciudades"
+          }
+        }
+      }
+    },
+    "/api/ciudades/paises": {
+      "get": {
+        "tags": [
+          "Ciudades"
+        ],
+        "summary": "Listar todos los países (pública)",
+        "responses": {
+          "200": {
+            "description": "Lista de países"
+          }
+        }
+      }
+    },
+    "/api/ciudades/ciudades-por-pais": {
+      "get": {
+        "tags": [
+          "Ciudades"
+        ],
+        "summary": "Ciudades de un país (pública)",
+        "parameters": [
+          {
+            "name": "nombre",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Colombia"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de ciudades"
+          },
+          "400": {
+            "description": "Falta el parámetro nombre"
+          }
+        }
+      }
+    },
+    "/api/vuelos/{numero}/{fecha}": {
+      "get": {
+        "tags": [
+          "Vuelos"
+        ],
+        "summary": "Info de un vuelo por número y fecha (pública, requiere RAPIDAPI_KEY en el servidor)",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "AA123"
+          },
+          {
+            "name": "fecha",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-12-01"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos del vuelo"
+          },
+          "404": {
+            "description": "No se encontró el vuelo"
+          },
+          "500": {
+            "description": "RAPIDAPI_KEY no configurada"
+          }
+        }
+      }
+    },
+    "/api/chatbot": {
+      "post": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Enviar mensaje al asistente (requiere OPENROUTER_API_KEY)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mensajeUsuario": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "mensajeUsuario": "Quiero registrar una encomienda"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "{ respuesta }"
+          },
+          "400": {
+            "description": "Mensaje vacío"
+          },
+          "401": {
+            "$ref": "#/components/responses/NoAutenticado"
+          },
+          "500": {
+            "description": "OPENROUTER_API_KEY no configurada"
+          }
+        }
+      }
+    }
+  }
+}
