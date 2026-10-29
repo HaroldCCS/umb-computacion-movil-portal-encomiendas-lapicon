@@ -377,3 +377,23 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 **Errores encontrados y cómo se resolvieron**
 - La API falsa exigía token en `viajes/disponibles` → se agregó a sus rutas públicas, como en el servidor real.
 - El E2E de punta a punta esperaba "Un viajero tomó…" → con 2C ya sale "¡Luis Pérez tomó…!".
+
+## 2026-10-28 — Paso 18: viajeros sugeridos por IA (docs/11 §2F)
+
+**Qué se hizo** (igual en las dos apps)
+- El detalle de una encomienda **disponible** tiene el grupo "Viajeros sugeridos":
+  - `POST /api/encomiendas/emparejar-viajes` propone viajes de la ruta con su afinidad;
+  - la app muestra hasta tres, de mayor a menor afinidad, sin repetir viajero y sin el propio remitente (que puede
+    tener un viaje en esa ruta);
+  - cada uno sale con el nombre que da `viajes/disponibles`, la fecha, "Afinidad 87 %" y un botón "Escribirle".
+- Carga aparte, con espera máxima de 15 s (una vez tardó más de 120 s) y sin reintentos automáticos. Si falla, el
+  detalle sigue igual y ofrece "Reintentar".
+- Pruebas:
+  - PWA: contrato con `fase0_emparejar_viajes.json`, lógica de sugerencias y un E2E (sugerido con nombre, escribirle,
+    y la IA caída sin bloquear); 136 unitarias y 36 E2E;
+  - Flutter: repositorio, lógica y detalle con sugerencias y con error; 238 pruebas.
+- Commits: PWA `9f174d5`, Flutter `cd89139` (sin push).
+
+**Errores encontrados y cómo se resolvieron**
+- En Flutter, Riverpod 3 reintenta solo los providers que fallan, así que el aviso de error nunca aparecía → el
+  provider de sugerencias usa `retry: (_, _) => null`.

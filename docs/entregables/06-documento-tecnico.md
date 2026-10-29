@@ -101,7 +101,7 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | C2–C3 | Mis encomiendas agrupadas por estado y detalle (maestro-detalle) | M | ✅ |
 | C4 | Cancelar mientras esté disponible | M | 🟡 el backend no tiene "cancelada": se retira como `vencida` |
 | C5–C6 | Buscar viajeros por ruta y ver su nombre y calificación | D | ✅ con `GET /api/viajes/disponibles` (docs/11 §2C) |
-| C7 | Viajes sugeridos por el matching IA | O | ❌ no existe en el backend |
+| C7 | Viajes sugeridos por el matching IA | O | ✅ `POST /api/encomiendas/emparejar-viajes` en el detalle de una encomienda disponible (docs/11 §2F) |
 | **RF-D** | **Viajes (viajero)** | | |
 | D1 | Registrar viaje | M | ✅ |
 | D2 | Validar el vuelo con AeroDataBox | M | 🟡 retirado de la interfaz: el servidor responde 500 (`RAPIDAPI_KEY`); queda listo en el repositorio (docs/11 §2H) |

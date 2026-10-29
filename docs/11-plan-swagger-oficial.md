@@ -1,6 +1,6 @@
 # 11. Plan de trabajo: Swagger oficial y observaciones del profesor
 
-> **Estado:** en desarrollo (28-oct-2026). Pasos 1 a 7 hechos (2H, Fase 0, Fase 1, 2A, 2B, 2G, 2C, 2D y 2E); queda 2F (opcional) y la Fase 4 (bloqueada).
+> **Estado:** en desarrollo (28-oct-2026). Plan completo salvo la Fase 4 (cancelar encomienda), bloqueada esperando al profesor. Falta el push de los tres repos.
 >
 > **Fuentes:**
 > - el Swagger oficial: https://lapticon-backend.onrender.com/api-docs/ (copia en `referencias/swagger-oficial.json`);
@@ -384,7 +384,7 @@ Puede quedar en comentarios.
 | 6 | **2G Que quede claro que la tomaron** (observación del profesor) | Paso 5 (nombres; sin ellos funciona con texto genérico) | 8 h | ✅ PWA `e05d2ef` · Flutter `2efddf4` |
 | 7 | 2C, 2D, 2E | Paso 2 | 10 h | ✅ PWA `eabc1b3` · Flutter `a78595a` |
 | 8 | Fase 3 en cada paso (no al final) | — | incluido | — |
-| 9 | 2F IA (si responde) | Paso 2 | 3 h | ⬜ |
+| 9 | 2F IA (si responde) | Paso 2 | 3 h | ✅ PWA `9f174d5` · Flutter `cd89139` |
 | ⏸ | Fase 4 Cancelar encomienda | El profesor | 4 h | ⏸ |
 
 Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecho (con hash del commit en cada repo) · ⏸ bloqueado.
