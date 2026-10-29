@@ -347,3 +347,33 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
   nuevas, y lo visto se guarda con `ref.listen` en Inicio y Envíos.
 - Las pruebas que buscaban "márcala como entregada" encontraban dos textos (el aviso nuevo y el pie) → ahora buscan el
   pie por "Cuando la dejes en destino".
+
+## 2026-10-28 — Paso 17: viajeros con nombre, fecha de nacimiento y chat cerrado con fecha (docs/11 §2C, §2D, §2E)
+
+**Qué se hizo** (igual en las dos apps)
+- **2C:**
+  - "Buscar viajeros" pide la ruta completa (origen, destino y botón para intercambiarlos) y usa
+    `GET /api/viajes/disponibles`, que es pública y trae `nombreUsuario`. Cada viajero sale con nombre y
+    calificación.
+  - "Mis encomiendas" completa el nombre del viajero con esa misma ruta (un pedido por ruta; si falla, queda
+    "Un viajero"). Así el aviso de 2G, el detalle y el chat dicen "Luis Pérez" en lugar de "Un viajero".
+  - Solo funciona mientras el viaje siga disponible (queda como 🆕 el perfil público).
+- **2D:** fecha de nacimiento opcional en el perfil (`YYYY-MM-DD`, guardada como texto para no correr el día por zona
+  horaria). Si se elige, se exige mayoría de edad. El cuerpo del perfil nunca lleva `uid` ni `email` (el `PUT`
+  respondería 400) y hay una prueba que lo comprueba.
+- **2E:**
+  - el estado del chat lee `{ estado, fechaCierre }`: con `cerrado` la barra se bloquea y dice "Este chat se cerró el
+    {fecha}, cuando la encomienda se marcó como entregada."; con 404 o 500 sigue abierto;
+  - `validarVuelo` va sin token;
+  - el modelo de viaje ya toleraba estados desconocidos (2A);
+  - `ciudades-por-pais` no se mezcla con los formularios.
+- La API falsa de la PWA ahora responde `viajes/disponibles` y el estado del chat como el servidor real.
+- Pruebas:
+  - PWA: 134 unitarias, 34 E2E (viajeros por ruta, fecha de nacimiento en el registro, chat cerrado con fecha) y
+    humo 15/15 contra el servidor real;
+  - Flutter: 234 pruebas.
+- Commits: PWA `eabc1b3`, Flutter `a78595a` (sin push).
+
+**Errores encontrados y cómo se resolvieron**
+- La API falsa exigía token en `viajes/disponibles` → se agregó a sus rutas públicas, como en el servidor real.
+- El E2E de punta a punta esperaba "Un viajero tomó…" → con 2C ya sale "¡Luis Pérez tomó…!".

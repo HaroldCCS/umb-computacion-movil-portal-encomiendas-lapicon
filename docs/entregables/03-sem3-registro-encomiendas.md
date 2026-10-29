@@ -16,7 +16,7 @@ tomarla: el flujo remitente → viajero.
 | Mis envíos | `GET /api/encomiendas` | Chips **Activas · Entregadas · Historial**; el contador de "Entregadas" son las que faltan por calificar. |
 | Detalle (maestro-detalle) | — | Pase de la ruta, línea de tiempo **Publicada → Tomada → Entregada → Calificada**, pago, fechas y quién la lleva con su calificación. |
 | Retirar | `PUT /api/encomiendas/{id}/estado` → `vencida` | Irreversible: hay que **escribir RETIRAR** para habilitar el botón. |
-| Buscar viajeros | `GET /api/viajes/buscar?ciudad=` + `GET /api/ratings/{uid}` | Quién sale de una ciudad y cómo lo califican. |
+| Buscar viajeros | `GET /api/viajes/disponibles?ciudadOrigen=&ciudadDestino=` (pública) + `GET /api/ratings/{uid}` | Quién viaja por la ruta completa, **con su nombre**, y cómo lo califican. Ese mismo nombre aparece en el aviso, el detalle y el chat de la encomienda tomada. |
 | Tomar (viajero) | `PUT /api/encomiendas/tomar/{id}` | Hoja con el recordatorio de responsabilidad ("Revisa el contenido antes de aceptarlo…"). |
 
 ## 3. Validaciones (el backend no valida el cuerpo)

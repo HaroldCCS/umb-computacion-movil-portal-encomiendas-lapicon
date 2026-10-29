@@ -21,7 +21,7 @@ Login ──► (sin cuenta) Registro ──► Completar perfil (paso 1 de 2) �
 | **Login** | Correo y contraseña. Los errores de Firebase se traducen ("Correo o contraseña incorrectos.") y se muestran junto al botón. |
 | **Recuperar** | `sendPasswordResetEmail`. Por privacidad nunca dice si el correo existe. |
 | **Sesión persistente** | `authStateChanges`: al reabrir la app entra directo. |
-| **Completar perfil** | Nombre, apellido, teléfono y nacionalidad (buscador de países de `/api/ciudades/paises`) → `POST /api/users/register`. |
+| **Completar perfil** | Nombre, apellido, teléfono, nacionalidad (buscador de países de `/api/ciudades/paises`) y fecha de nacimiento opcional (si se elige, mayor de edad) → `POST /api/users/register`. El cuerpo nunca lleva `uid` ni `email`. |
 | **Primera llamada protegida** | `GET /api/users/{uid}` con `Authorization: Bearer <idToken>` al iniciar la sesión. |
 | **Elegir rol** | Remitente ("Quiero enviar") o Viajero ("Voy a viajar"); se puede cambiar desde el Perfil. |
 | **Cerrar sesión** | Con confirmación en una hoja inferior. |

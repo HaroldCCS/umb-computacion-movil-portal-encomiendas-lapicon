@@ -100,7 +100,7 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | C1 | Crear encomienda con validación completa | M | ✅ (sin fecha límite: el backend la fija a un mes) |
 | C2–C3 | Mis encomiendas agrupadas por estado y detalle (maestro-detalle) | M | ✅ |
 | C4 | Cancelar mientras esté disponible | M | 🟡 el backend no tiene "cancelada": se retira como `vencida` |
-| C5–C6 | Buscar viajeros por ciudad y ver su calificación | D | ✅ |
+| C5–C6 | Buscar viajeros por ruta y ver su nombre y calificación | D | ✅ con `GET /api/viajes/disponibles` (docs/11 §2C) |
 | C7 | Viajes sugeridos por el matching IA | O | ❌ no existe en el backend |
 | **RF-D** | **Viajes (viajero)** | | |
 | D1 | Registrar viaje | M | ✅ |
@@ -115,7 +115,7 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | **RF-F** | **Entrega y calificación** | | |
 | F1 | Marcar entregada | M | ✅ escribiendo ENTREGAR |
 | F2–F3 | Calificar (1–5 + comentario) y ver calificaciones recibidas | M | ✅ |
-| F4 | Chat cerrado tras calificar | M | 🟡 la app lo refleja; el backend lo cierra antes, al marcar `entregada` (pregunta P16 al profesor) |
+| F4 | Chat cerrado tras calificar | M | 🟡 la app bloquea la barra y dice desde cuándo; el backend lo cierra antes, al marcar `entregada` (pregunta P16 al profesor) |
 | **RF-G** | **Extras** | | |
 | G1 | Asistente con IA | D | ✅ (error con "Reintentar" mientras el servidor falle) |
 | G2 | Caché local de ciudades y países (7 días) | D | ✅ |
@@ -266,7 +266,7 @@ Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el ser
 | Unidad y contrato | modelos con respuestas reales, lógica, validadores, cliente HTTP | ídem, más repositorios con `fetch` falso |
 | Interfaz | widget tests y accesibilidad (contraste, 48 dp, letra al doble) | componentes con `axe-core`; contraste de tokens |
 | Extremo a extremo | prueba manual en el emulador con cuentas reales | 26 E2E en iPhone y Android, con dos personas a la vez |
-| Contra el servidor real | — | `npm run humo`: 14/14 endpoints (28-oct) |
+| Contra el servidor real | — | `npm run humo`: 15/15 endpoints (28-oct) |
 
 ## 7. Limitaciones conocidas
 
