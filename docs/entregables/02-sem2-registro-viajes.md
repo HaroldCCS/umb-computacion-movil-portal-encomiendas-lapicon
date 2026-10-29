@@ -15,8 +15,9 @@ encomiendas que van por su misma ruta.
 | Registrar viaje | `POST /api/viajes` | Número de vuelo (`AV24`, `AA123`…), fecha, ciudad de origen y destino elegidas de la lista oficial. |
 | Verificar el vuelo | `GET /api/vuelos/{numero}/{fecha}` | **Retirado de la interfaz** (observación del profesor): el servidor responde siempre **500** (`RAPIDAPI_KEY`), así que no se muestra. El número de vuelo se sigue pidiendo y mostrando; la llamada queda lista en el repositorio. |
 | Un viaje a la vez | `POST /api/viajes` → **400** | El mensaje del backend se explica en una hoja con el camino: "Ver mi viaje". |
+| Cancelar viaje | `PATCH /api/viajes/{id}/estado` → `cancelado` | Botón "Cancelar viaje" en Mi viaje, que se confirma escribiendo **CANCELAR** y lleva a registrar otro. Con encomiendas por entregar no deja seguir. En el historial sale "Cancelado" con ícono. |
 | Mi viaje | `GET /api/viajes/disponible` | Tarjeta principal: ruta, vuelo, fecha, cuántas lleva por entregar y cuánto le pagan. 404 = "sin viaje activo" (no es error). |
-| Historial | `GET /api/viajes` | Últimos 5 viajes con su estado (Activo / Completado). |
+| Historial | `GET /api/viajes` | Últimos 5 viajes con su estado (Activo / Completado / Cancelado). |
 | Explorar | `GET /api/encomiendas/disponibles?origen=&destino=` | Encomiendas de su ruta, con lo que pagan a la vista y orden por "Más recientes" o "Vencen pronto". |
 
 ## 3. Validaciones del formulario

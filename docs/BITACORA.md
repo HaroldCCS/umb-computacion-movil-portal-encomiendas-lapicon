@@ -274,3 +274,22 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 **Errores encontrados y cómo se resolvieron**
 - Desde que `chats/estado` responde 200, las dos apps **bloquean el chat al marcar `entregada`**: ya leían
   `estado: "cerrado"`. No es un cambio de las apps sino del servidor; queda como pregunta P16 y se revisa en 2E.
+
+## 2026-10-28 — Paso 14: cancelar viaje (docs/11 §2A)
+
+**Qué se hizo**
+- Las dos apps: botón **"Cancelar viaje"** en Mi viaje (`PATCH /api/viajes/{id}/estado` con `cancelado`).
+  - Se confirma escribiendo `CANCELAR` y después lleva a registrar otro viaje.
+  - Con encomiendas por entregar no deja seguir, porque el servidor no lo revisa: ofrece "Ver por entregar".
+  - El botón espera a que carguen las entregas.
+- Estados de viaje `cancelado` (ícono de círculo con X) y `contactado` (burbuja de chat); lo desconocido se muestra
+  "Sin estado".
+- Cliente HTTP con `PATCH` en las dos apps. El proxy de Cloudflare ya reenvía cualquier método.
+- Pruebas:
+  - PWA: contrato con las respuestas de la Fase 0, repositorio y dos E2E (cancelar, y bloqueo con encomienda tomada);
+    126 unitarias y 30 E2E;
+  - Flutter: cliente, contrato y tres pruebas de widget; 222 pruebas.
+- Commits: PWA `a5a30e2`, Flutter `7fb4c48` (sin push).
+
+**Errores encontrados y cómo se resolvieron**
+- En la hoja de aviso, el botón "Cerrar" chocaba con la X de la hoja (mismo nombre accesible) → pasó a "Entendido".
