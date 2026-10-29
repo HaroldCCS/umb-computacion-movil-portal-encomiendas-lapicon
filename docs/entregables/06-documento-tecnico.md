@@ -107,7 +107,7 @@ La versión original (antes de programar) está en [`docs/02-requerimientos.md`]
 | D2 | Validar el vuelo con AeroDataBox | M | 🟡 retirado de la interfaz: el servidor responde 500 (`RAPIDAPI_KEY`); queda listo en el repositorio (docs/11 §2H) |
 | D3 | Un viaje activo a la vez (400) | M | ✅ hoja con "Ver mi viaje" |
 | D4–D5 | Mi viaje, historial y encomiendas disponibles de la ruta | M | ✅ |
-| D6–D7 | Tomar una encomienda y ver las que tomé | M | ✅ (las tomadas se recuerdan en el dispositivo) |
+| D6–D7 | Tomar una encomienda y ver las que tomé | M | ✅ las tomadas vienen de `buscar`; las entregadas se recuerdan en el dispositivo |
 | **RF-E** | **Chat** | | |
 | E1–E2 | Chat por encomienda en tiempo real sobre Firestore (id `uidA_uidB` ordenado) | M | ✅ |
 | E3 | Consultar el estado y bloquear el envío si está cerrado | M | ✅ el endpoint responde desde el 28-oct; el chat se cierra al marcar `entregada` |
@@ -266,7 +266,7 @@ Recibir: escucha en tiempo real, orden por fecha; "Enviando…" hasta que el ser
 | Unidad y contrato | modelos con respuestas reales, lógica, validadores, cliente HTTP | ídem, más repositorios con `fetch` falso |
 | Interfaz | widget tests y accesibilidad (contraste, 48 dp, letra al doble) | componentes con `axe-core`; contraste de tokens |
 | Extremo a extremo | prueba manual en el emulador con cuentas reales | 26 E2E en iPhone y Android, con dos personas a la vez |
-| Contra el servidor real | — | `npm run humo`: 13/13 endpoints |
+| Contra el servidor real | — | `npm run humo`: 14/14 endpoints (28-oct) |
 
 ## 7. Limitaciones conocidas
 

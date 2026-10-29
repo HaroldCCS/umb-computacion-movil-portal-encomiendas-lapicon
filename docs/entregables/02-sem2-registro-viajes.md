@@ -18,7 +18,7 @@ encomiendas que van por su misma ruta.
 | Cancelar viaje | `PATCH /api/viajes/{id}/estado` → `cancelado` | Botón "Cancelar viaje" en Mi viaje, que se confirma escribiendo **CANCELAR** y lleva a registrar otro. Con encomiendas por entregar no deja seguir. En el historial sale "Cancelado" con ícono. |
 | Mi viaje | `GET /api/viajes/disponible` | Tarjeta principal: ruta, vuelo, fecha, cuántas lleva por entregar y cuánto le pagan. 404 = "sin viaje activo" (no es error). |
 | Historial | `GET /api/viajes` | Últimos 5 viajes con su estado (Activo / Completado / Cancelado). |
-| Explorar | `GET /api/encomiendas/disponibles?origen=&destino=` | Encomiendas de su ruta, con lo que pagan a la vista y orden por "Más recientes" o "Vencen pronto". |
+| Explorar | `GET /api/encomiendas/buscar?origen=&destino=` | Encomiendas de su ruta (sin las propias), con lo que pagan a la vista y orden por "Más recientes" o "Vencen pronto". Cada una trae el remitente con nombre y calificación, así que el viajero puede escribirle primero. |
 
 ## 3. Validaciones del formulario
 
@@ -31,7 +31,7 @@ encomiendas que van por su misma ruta.
 ## 4. Reglas que la app respeta
 
 - Con viaje activo **no se muestra el botón "+"** de registrar otro.
-- El viajero **no ve sus propias encomiendas** (publicadas como remitente) en Explorar, aunque el backend las incluya.
+- El viajero **no ve sus propias encomiendas** (publicadas como remitente) en Explorar, aunque `buscar` las incluya: se filtran por `uid`.
 - No se promete una verificación que el servidor no puede hacer: ni botón ni insignia de "verificado".
 
 ## 5. Evidencia

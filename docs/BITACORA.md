@@ -293,3 +293,25 @@ Una entrada por paso: qué se hizo, qué errores aparecieron, cómo se resolvier
 
 **Errores encontrados y cómo se resolvieron**
 - En la hoja de aviso, el botón "Cerrar" chocaba con la X de la hoja (mismo nombre accesible) → pasó a "Entendido".
+
+## 2026-10-28 — Paso 15: el viajero conoce al remitente (docs/11 §2B)
+
+**Qué se hizo**
+- Las dos apps usan `GET /api/encomiendas/buscar` en lugar de `/disponibles` y `GET /api/encomiendas`. Explorar y
+  "Mis entregas" comparten una sola consulta por ruta: `busquedaEnMiRutaProvider` en Flutter y la misma clave de
+  TanStack Query en la PWA.
+- Como `buscar` trae el `uid` y el nombre del remitente:
+  - el detalle del viajero muestra su fila de confianza;
+  - "Abrir chat con el remitente" funciona desde que la toma;
+  - se quitó "Podrás escribirle cuando te escriba primero".
+- Explorar quita las propias comparando `uid`. "Mis entregas" combina las `tomadas` del servidor con lo guardado en el
+  dispositivo, que sigue haciendo falta porque `buscar` deja de traerlas al entregarlas.
+- Pruebas:
+  - PWA: contrato con `fase0_buscar_*`, ruta `buscar` en la API falsa, E2E en que el viajero escribe primero y humo
+    con `buscar` (14/14 contra el servidor real); 127 unitarias y 30 E2E;
+  - Flutter: repositorio con el JSON real, providers (una sola búsqueda, sin las propias, tomadas + teléfono) y
+    detalle; 225 pruebas.
+- Commits: PWA `8562341`, Flutter `cdf1f46` (sin push).
+
+**Errores encontrados y cómo se resolvieron**
+- El E2E de punta a punta esperaba "La publicó Ana" → ahora se ve la fila "Remitente: Ana…" con calificación.

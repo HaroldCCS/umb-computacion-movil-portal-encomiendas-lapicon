@@ -75,7 +75,7 @@ de verdad (no solo lo que dice la documentación) y qué falla, para diseñar la
 - Contrato OpenAPI y visor Swagger: [`docs/api/`](../api/README.md).
 - Respuestas reales: `referencias/respuestas/*.json`.
 - Pruebas de contrato: `test/contrato_test.dart` (Flutter) y `src/datos/contrato.test.ts` (PWA).
-- Comprobación automática contra el servidor real: `npm run humo` en la PWA (13/13 endpoints responden como espera la
+- Comprobación automática contra el servidor real: `npm run humo` en la PWA (14/14 endpoints responden como espera la
   app, 26-oct-2026).
 - Verificación del Swagger oficial (28-oct): `referencias/respuestas/fase0_*.json` y [docs/11](../11-plan-swagger-oficial.md).
 - Preguntas enviadas al profesor: [`docs/06-riesgos-y-preguntas.md`](../06-riesgos-y-preguntas.md).
